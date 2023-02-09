@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" href="tab.ico">
+    <title>MyTab</title>
+</head>
+
+<body>
+    <img src="bg.jpg" alt class="focus" id="bg">
+    <div class="cover"></div>
+    <div class="timeBox"></div>
+    <div class="container" id="container">
+        <i class="fa-brands fa-windows item" id="itema"><img src="baidu.png" alt=""></i>
+        <input type="text" id="search-btn" class="search-btn" placeholder="搜索" autocomplete="off" onfocus="add()"
+            onblur="remove()">
+        <button class="fa-solid fa-magnifying-glass item" id="itemb" onclick="myClick()"><img src="search.png" alt="">
+        </button>
+    </div>
+    <!-- <script src="https://kit.fontawesome.com/f23451c27c.js" crossorigin="anonymous"></script> -->
+    <script src="mytab.js">
+    </script>
+</body>
+
+</html>
