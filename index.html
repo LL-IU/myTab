@@ -6,13 +6,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style.css">
-    <link rel="icon" href="tab.ico">
+    <link rel="icon" href="favicon.ico">
     <title>MyTab</title>
 </head>
 
 <body>
-    <img src="bg.jpg" alt class="focus" id="bg">
-    <div class="cover"></div>
+    <img src="bg.jpg" alt class="focus" id="bg" oncontextmenu="return false">
+    <!-- <div class="cover"></div> -->
     <div class="timeBox"></div>
     <div class="container" id="container">
         <i class="fa-brands fa-windows item" id="itema"><img src="baidu.png" alt=""></i>
@@ -20,6 +20,92 @@
             onblur="remove()">
         <button class="fa-solid fa-magnifying-glass item" id="itemb" onclick="myClick()"><img src="search.png" alt="">
         </button>
+    </div>
+    <ul class="myul" id="myul">
+        <li>https://<input type="text" id="linkInput"></li>
+    </ul>
+    <div id="quickLink"><!-- 左键单击判断有没有url，没有创建，有跳转 ,先不要img，用js添加-->
+        <a class="keytype" id="keyQ" target="_blank" href="">
+            <p>Q</p>
+        </a>
+        <a class="keytype" id="keyW" target="_blank" href="">
+            <p>W</p>
+        </a>
+        <a class="keytype" id="keyE" target="_blank" href="">
+            <p>E</p>
+        </a>
+        <a class="keytype" id="keyR" target="_blank" href="">
+            <p>R</p>
+        </a>
+        <a class="keytype" id="keyT" target="_blank" href="">
+            <p>T</p>
+        </a>
+        <a class="keytype" id="keyY" target="_blank" href="">
+            <p>Y</p>
+        </a>
+        <a class="keytype" id="keyU" target="_blank" href="">
+            <p>U</p>
+        </a>
+        <a class="keytype" id="keyI" target="_blank" href="">
+            <p>I</p>
+        </a>
+        <a class="keytype" id="keyO" target="_blank" href="">
+            <p>O</p>
+        </a>
+        <a class="keytype" id="keyP" target="_blank" href="">
+            <p>P</p>
+        </a>
+        <div class="blanka"></div>
+        <a class="keytype" id="keyA" target="_blank" href="">
+            <p>A</p>
+        </a>
+        <a class="keytype" id="keyS" target="_blank" href="">
+            <p>S</p>
+        </a>
+        <a class="keytype" id="keyD" target="_blank" href="">
+            <p>D</p>
+        </a>
+        <a class="keytype" id="keyF" target="_blank" href="">
+            <p>F</p>
+        </a>
+        <a class="keytype" id="keyG" target="_blank" href="">
+            <p>G</p>
+        </a>
+        <a class="keytype" id="keyH" target="_blank" href="">
+            <p>H</p>
+        </a>
+        <a class="keytype" id="keyJ" target="_blank" href="">
+            <p>J</p>
+        </a>
+        <a class="keytype" id="keyK" target="_blank" href="">
+            <p>K</p>
+        </a>
+        <a class="keytype" id="keyL" target="_blank" href="">
+            <p>L</p>
+        </a>
+        <div class="blankb"></div>
+        <a class="keytype" id="keyZ" target="_blank" href="">
+            <p>Z</p>
+        </a>
+        <a class="keytype" id="keyX" target="_blank" href="">
+            <p>X</p>
+        </a>
+        <a class="keytype" id="keyC" target="_blank" href="">
+            <p>C</p>
+        </a>
+        <a class="keytype" id="keyV" target="_blank" href="">
+            <p>V</p>
+        </a>
+        <a class="keytype" id="keyB" target="_blank" href="https://www.bilibili.com/">
+            <p>B</p>
+            <img src="https://www.bilibili.com/favicon.ico">
+        </a>
+        <a class="keytype" id="keyN" target="_blank" href="">
+            <p>N</p>
+        </a>
+        <a class="keytype" id="keyM" target="_blank" href="">
+            <p>M</p>
+        </a>
     </div>
     <!-- <script src="https://kit.fontawesome.com/f23451c27c.js" crossorigin="anonymous"></script> -->
     <script src="mytab.js">
