@@ -60,3 +60,64 @@ window.onkeydown = function (e) {
         searchMy();
     };
 }
+var ql = document.getElementById("quickLink");
+var keytype = document.getElementsByClassName("keytype");
+let myul = document.querySelector('.myul');
+var ulId = document.getElementById("myul");
+var linkInput = document.getElementById("linkInput");
+for (let i = 0; i < keytype.length; i++) {
+    const kt = keytype[i];
+    kt.addEventListener('contextmenu', fn);
+    function fn(e) {
+        e.preventDefault();//preventDefault()阻止默认事件（这里阻止了默认菜单）
+        myul.style.display = 'block';//点击右键菜单显示出来
+        let X = e.screenX;// - this.offsetLeft 
+        let Y = e.screenY - 60;//  - this.offsetTop 
+        myul.style.left = X + 'px';
+        myul.style.top = Y + 'px';
+        //kt.classList.add("test");
+        window.onkeydown = function (e) {
+            if (e.keyCode === 13) {
+                var newLink = linkInput.value;
+                //kt.classList.add("test");
+                //kt.innerText = newLink;
+                kt.href = "https://" + newLink;
+                /* var linkImg = document.createElement("img");
+                linkImg.src = kt.href + "favicon.ico";
+                kt.appendChild(linkImg); */
+                var imgs = kt.getElementsByTagName('img').length;//用于判断是否存在img
+                if (imgs == 0) {
+                    var linkImg = document.createElement("img");
+                    linkImg.src = kt.href + "favicon.ico";
+                    kt.appendChild(linkImg);
+                } else {
+                    kt.querySelector("img").src = kt.href + "favicon.ico";//querySelector可以获得img
+                }
+                myul.style.display = 'none';
+                linkInput.value = "";
+            }
+        }
+    }
+    window.onclick = function (event) {
+        if (event.target.id == "linkInput") {
+            //如果点击到
+            //myul.classList.add("test");//用于测试if条件是否成立
+            myul.style.display = 'block';
+            return;
+        };
+        //myul.classList.remove("test");
+        myul.style.display = 'none';
+        linkInput.value = "";
+        //如果点击菜单外的任意位置，菜单被隐藏
+    }
+}
+/* ql.addEventListener('contextmenu', fn); */
+//contextmenu右键
+/* function fn(e) {
+    e.preventDefault();//preventDefault()阻止默认事件（这里阻止了默认菜单）
+    myul.style.display = 'block';//点击右键菜单显示出来
+    let X = e.screenX;// - this.offsetLeft
+    let Y = e.screenY - 60;//  - this.offsetTop
+    myul.style.left = X + 'px';
+    myul.style.top = Y + 'px';
+} */

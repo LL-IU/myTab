@@ -23,7 +23,8 @@ body {
     height: 100%;
     position: absolute;
     transition: all 0.2s ease-in-out;
-    z-index: -1;
+    z-index: -10;
+    user-select: none;
 }
 
 .bg-act {
@@ -31,16 +32,7 @@ body {
     transform: scale(1.02);
 }
 
-.cover {
-    position: relative;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.01);
-    z-index: 1;
-}
-
+/* 搜索框主体 */
 .container {
     position: absolute;
     top: 180px;
@@ -79,6 +71,7 @@ body {
     user-select: none;
 }
 
+/* 搜索框左右的图标 */
 .item {
     margin: auto 10px;
     font-size: 20px;
@@ -129,6 +122,7 @@ body {
     background: #d3d3d3e3;
 }
 
+/* 搜索框输入 */
 .search-btn {
     width: 160px;
     height: 38px;
@@ -138,8 +132,7 @@ body {
     transition: all 0.5s ease-in-out;
     border: none;
     outline: none;
-    background-color: rgba(255, 255, 255, 0);
-    /* backdrop-filter: blur(10px); */
+    background-color: rgba(208, 208, 208, 0);
 }
 
 .sbtn-focus {
@@ -147,12 +140,6 @@ body {
     border: none;
     outline: none;
 }
-
-/* .search-btn:focus {
-    width: 400px;
-    border: none;
-    outline: none;
-} */
 
 .search-btn:focus::placeholder {
     opacity: 0;
@@ -162,4 +149,109 @@ body {
     opacity: 1;
     color: rgb(255, 255, 255);
     text-shadow: 0 0 2px #909090;
+    user-select: none;
+}
+
+/* 快捷链接 */
+#quickLink {
+    position: absolute;
+    top: 280px;
+    left: 51%;
+    translate: -50%;
+    width: 800px;
+    height: 240px;
+    background-color: #ffffff1a;
+    border-radius: 28px;
+    /* z-index: 1; */
+}
+
+#quickLink p {
+    position: absolute;
+    margin: 6px;
+    font-size: 14px;
+    line-height: 14px;
+    font-weight: 800;
+    user-select: none;
+}
+
+#quickLink a:link {
+    color: #000000c6;
+    text-decoration: none;
+}
+
+#quickLink a:visited {
+    color: #000000c6;
+    text-decoration: none;
+}
+
+#quickLink .keytype {
+    float: left;
+    margin: 10px;
+    width: 60px;
+    height: 60px;
+    background: #dbdbdbc1;
+    outline: 2px solid #e1e1e1;
+    box-shadow: 0px 0px 4px 2px #e3e3e3;
+    opacity: 0.9;
+    border-radius: 22px;
+}
+
+.keytype img {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    margin: 18px;
+}
+
+/* 占位用 */
+.blanka,
+.blankb {
+    clear: left;
+}
+
+.blanka {
+    float: left;
+    width: 34px;
+    height: 60px;
+}
+
+.blankb {
+    float: left;
+    width: 73px;
+    height: 60px;
+}
+
+/* 右键编辑框 */
+.myul {
+    width: 230px;
+    height: 40px;
+    background-color: rgba(59, 59, 59, 0.542);
+    position: absolute;
+    display: none;
+    z-index: 1;
+    border-radius: 4px;
+}
+
+.myul li {
+    list-style: none;
+    width: 220px;
+    height: 40px;
+    margin-left: 10px;
+    text-align: left;
+    font-size: 16px;
+    color: white;
+    line-height: 38px;
+    user-select: none;
+}
+
+.myul li input {
+    width: 154px;
+    height: 26px;
+    margin: auto;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: white;
+    border-radius: 3px;
+    background-color: rgba(120, 120, 120, 0);
 }
