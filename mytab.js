@@ -60,11 +60,14 @@ window.onkeydown = function (e) {
         searchMy();
     };
 }
+//quicklink部分，右键菜单和自定义网址
 var ql = document.getElementById("quickLink");
 var keytype = document.getElementsByClassName("keytype");
 let myul = document.querySelector('.myul');
 var ulId = document.getElementById("myul");
+var myli = document.getElementById("myli");
 var linkInput = document.getElementById("linkInput");
+var iconInput = document.getElementById("iconInput");
 for (let i = 0; i < keytype.length; i++) {
     const kt = keytype[i];
     kt.addEventListener('contextmenu', fn);
@@ -76,31 +79,32 @@ for (let i = 0; i < keytype.length; i++) {
         myul.style.left = X + 'px';
         myul.style.top = Y + 'px';
         //kt.classList.add("test");
+        //enter后把输入的网址填入a标签的href中，让它能被访问，获取图标
         window.onkeydown = function (e) {
             if (e.keyCode === 13) {
                 var newLink = linkInput.value;
-                //kt.classList.add("test");
-                //kt.innerText = newLink;
+                var newIcon = iconInput.value;
                 kt.href = "https://" + newLink;
-                /* var linkImg = document.createElement("img");
-                linkImg.src = kt.href + "favicon.ico";
-                kt.appendChild(linkImg); */
                 var imgs = kt.getElementsByTagName('img').length;//用于判断是否存在img
                 if (imgs == 0) {
+                    //没有img时创建一个，放入网址图标
                     var linkImg = document.createElement("img");
-                    linkImg.src = kt.href + "favicon.ico";
+                    linkImg.src = "https://" + newIcon;
                     kt.appendChild(linkImg);
                 } else {
-                    kt.querySelector("img").src = kt.href + "favicon.ico";//querySelector可以获得img
+                    //有img时替换src
+                    kt.querySelector("img").src = "https://" + newIcon;//querySelector可以获得img
                 }
                 myul.style.display = 'none';
                 linkInput.value = "";
+                iconInput.value = "";
             }
         }
     }
     window.onclick = function (event) {
-        if (event.target.id == "linkInput") {
-            //如果点击到
+        //if (event.target.id == "myli") {//可行
+        if (event.target.id == "linkInput" || event.target.id == "iconInput" || event.target.id == "myli") {
+            //如果点击到输入框或者li上，不会消失
             //myul.classList.add("test");//用于测试if条件是否成立
             myul.style.display = 'block';
             return;
@@ -108,6 +112,7 @@ for (let i = 0; i < keytype.length; i++) {
         //myul.classList.remove("test");
         myul.style.display = 'none';
         linkInput.value = "";
+        iconInput.value = "";
         //如果点击菜单外的任意位置，菜单被隐藏
     }
 }

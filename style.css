@@ -223,9 +223,9 @@ body {
 
 /* 右键编辑框 */
 .myul {
-    width: 230px;
-    height: 40px;
-    background-color: rgba(59, 59, 59, 0.542);
+    width: 270px;
+    height: 90px;
+    background-color: rgba(71, 71, 71, 0.727);
     position: absolute;
     display: none;
     z-index: 1;
@@ -234,24 +234,32 @@ body {
 
 .myul li {
     list-style: none;
-    width: 220px;
-    height: 40px;
+    width: 250px;
+    height: 30px;
     margin-left: 10px;
+    margin-top: 10px;
     text-align: left;
     font-size: 16px;
     color: white;
-    line-height: 38px;
+    line-height: 30px;
     user-select: none;
+    z-index: -1;
 }
 
 .myul li input {
-    width: 154px;
-    height: 26px;
-    margin: auto;
+    width: 150px;
+    height: 20px;
+    margin-left: 5px;
     border: none;
+    border-bottom: 1px solid white;
     outline: none;
-    font-size: 16px;
+    font-size: 17px;
     color: white;
-    border-radius: 3px;
+    /* border-radius: 3px; */
     background-color: rgba(120, 120, 120, 0);
+}
+
+.myul li input:focus {
+    background-color: rgba(181, 181, 181, 0.468);
+    border-radius: 3px;
 }
