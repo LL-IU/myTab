@@ -224,7 +224,7 @@ body {
 /* 右键编辑框 */
 .myul {
     width: 270px;
-    height: 90px;
+    height: 84px;
     background-color: rgba(71, 71, 71, 0.727);
     position: absolute;
     display: none;
@@ -237,7 +237,7 @@ body {
     width: 250px;
     height: 30px;
     margin-left: 10px;
-    margin-top: 10px;
+    margin-top: 7px;
     text-align: left;
     font-size: 16px;
     color: white;
@@ -247,8 +247,8 @@ body {
 }
 
 .myul li input {
-    width: 150px;
-    height: 20px;
+    width: 155px;
+    height: 22px;
     margin-left: 5px;
     border: none;
     border-bottom: 1px solid white;
