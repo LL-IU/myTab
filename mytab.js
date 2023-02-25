@@ -150,6 +150,10 @@ for (let i = 0; i < keytype.length; i++) {
                         localStorage.setItem(i, "https://" + newLink);
                         localStorage.setItem(i + 27, "https://" + newIcon);
                     }
+                    if (newLink == "clear") {//在网址栏输入clear可以清除掉这里存储的网址
+                        localStorage.removeItem(i);
+                        localStorage.removeItem(i + 27);
+                    }
                 }
             }
             if (myul.style.display == 'none') {
