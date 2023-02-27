@@ -9,6 +9,19 @@ var bg = document.getElementById("bg");//背景
 var content = sbtn.value;
 sbtn.focus(); //不用autofocus，不好用
 
+//获得时间
+setInterval(function () {
+    var date = new Date()
+    let hh = padZero(date.getHours())
+    let mm = padZero(date.getMinutes())
+    //let ss = padZero(date.getSeconds())
+    timeBox.innerText = hh + ':' + mm; /* + ':' + ss */
+}, 1000);
+
+function padZero(n) {
+    return n > 9 ? n : '0' + n
+};
+
 //focus和非focus时添加和去除各种css属性
 function add() {
     sbtn.classList.add('sbtn-focus');
@@ -26,19 +39,6 @@ function remove() {
     container.classList.remove('container-focus');
     content = sbtn.value; //点击搜索按钮会丢失聚焦，先保存值，在清除内容
     sbtn.value = ""; //失去焦点清除内容
-};
-
-//获得时间
-setInterval(function () {
-    var date = new Date()
-    let hh = padZero(date.getHours())
-    let mm = padZero(date.getMinutes())
-    //let ss = padZero(date.getSeconds())
-    timeBox.innerText = hh + ':' + mm; /* + ':' + ss */
-}, 1000);
-
-function padZero(n) {
-    return n > 9 ? n : '0' + n
 };
 
 //搜索事件

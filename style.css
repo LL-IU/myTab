@@ -29,7 +29,7 @@ body {
 
 .bg-act {
     /* filter: blur(1px); */
-    transform: scale(1.02);
+    transform: scale(1.04);
 }
 
 /* 搜索框主体 */
@@ -64,10 +64,11 @@ body {
     background-color: transparent;
     height: 48px;
     /* top: 30%; */
-    color: white;
+    color: rgb(50, 50, 50);
     text-align: center;
     line-height: 48px;
     font-size: 48px;
+    font-family: 'Bauhaus-Bold';
     user-select: none;
 }
 
@@ -129,6 +130,8 @@ body {
     padding: 0px 2px;
     text-align: center;
     font-size: 16px;
+    font-weight: 600;
+    font-family: 'Bauhaus-Bold';
     transition: all 0.5s ease-in-out;
     border: none;
     outline: none;
@@ -155,11 +158,11 @@ body {
 /* 快捷链接 */
 #quickLink {
     position: absolute;
-    top: 280px;
+    top: 290px;
     left: 51%;
     translate: -50%;
     width: 800px;
-    height: 240px;
+    height: 248px;
     background-color: #ffffff1a;
     border-radius: 28px;
     /* z-index: 1; */
@@ -187,13 +190,15 @@ body {
 #quickLink .keytype {
     float: left;
     margin: 10px;
+    margin-top: 12px;
     width: 60px;
     height: 60px;
-    background: #dbdbdbc1;
-    outline: 2px solid #e1e1e1;
-    box-shadow: 0px 0px 4px 2px #e3e3e3;
+    background: #ffffff77;
+    outline: 2px solid #ffffff;
+    box-shadow: 0px 0px 4px 2px #ffffff;
     opacity: 0.9;
-    border-radius: 22px;
+    border-radius: 18px;
+    font-family: 'Bauhaus-Bold';
 }
 
 .keytype img {
@@ -211,7 +216,7 @@ body {
 
 .blanka {
     float: left;
-    width: 34px;
+    width: 30px;
     height: 60px;
 }
 
