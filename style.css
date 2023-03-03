@@ -157,7 +157,7 @@ body {
 
 /* 联想词 */
 #relebox {
-    width: 483px;
+    width: 485px;
     border-radius: 15px;
     transition: all 0.5s;
     z-index: 10;
@@ -165,10 +165,9 @@ body {
 }
 
 #relevance {
-    width: 491px;
+    width: 485px;
     position: absolute;
     top: 230px;
-    left: 494px;
     padding: 0;
     margin: 0 auto;
     font-weight: 600;

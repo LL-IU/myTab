@@ -228,20 +228,30 @@ for (let i = 0; i < keytype.length; i++) {
                 }
             }
         }
+        window.onclick = function (event) {
+            if (linkInput != document.activeElement && iconInput != document.activeElement) {
+                myul.style.display = 'none';
+                linkInput.value = "";
+                iconInput.value = "";
+            }
+            //如果点击菜单外的任意位置，菜单被隐藏
+        }
     }
-    window.onclick = function (event) {
-        //if (event.target.id == "myli") {//可行
-        if (event.target.id == "linkInput" || event.target.id == "iconInput" || event.target.id == "myli") {
-            //如果点击到输入框或者li上，不会消失
-            //好像必须用id才有效
-            //myul.classList.add("test");//用于测试if条件是否成立
-            myul.style.display = 'block';
-            return;
-        };
-        //myul.classList.remove("test");
-        myul.style.display = 'none';
-        linkInput.value = "";
-        iconInput.value = "";
-        //如果点击菜单外的任意位置，菜单被隐藏
-    }
+    //以下方法在加入联想词后出bug失效，
+    // window.onclick = function (event) {
+    //     //if (event.target.id == "myli") {//可行
+    //     if (event.target.id == "linkInput" || event.target.id == "iconInput" || event.target.id == "myli") {
+    //         //如果点击到输入框或者li上，不会消失
+    //         //好像必须用id才有效
+    //         //myul.classList.add("test");//用于测试if条件是否成立
+    //         myul.style.display = 'block';
+    //         // return;
+    //     } else if (event.target.id == "bg") {
+    //         myul.style.display = 'none';
+    //         linkInput.value = "";
+    //         iconInput.value = "";
+    //         //如果点击菜单外的任意位置，菜单被隐藏
+    //     }
+    //     //myul.classList.remove("test");
+    // }
 }
