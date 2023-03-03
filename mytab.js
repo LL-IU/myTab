@@ -16,6 +16,10 @@ function add() {
     itemb.classList.add('item-act');
     bg.classList.add('bg-act');
     container.classList.add('container-focus');
+    var contlate = sbtn.value;
+    if (contlate == "") {
+        oUl.style.display = 'none';//切别的页面再回来防止搜索框空了联想词还在
+    }
 };
 var relevance = document.getElementById('relevance');
 function remove() {
@@ -28,13 +32,12 @@ function remove() {
     window.onclick = function (event) {
         if (event.target.id == relevance) {
             oUl.style.display = 'block';
-            return;
         } else {
             oUl.style.display = 'none';//隐藏联想词
         }
     }
     sbtn.value = ""; //失去焦点清除内容
-    // oUl.style.display = 'none';//隐藏联想词
+    //oUl.style.display = 'none';//隐藏联想词
 };
 
 //获得时间
