@@ -69,7 +69,7 @@ body {
 
 .container-focus {
     background: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 8px 2px rgba(92, 92, 92, 0.7);
+    box-shadow: 0 0 8px 2px rgba(151, 151, 151, 0.7);
 }
 
 /* 搜索框左右的图标 */
@@ -157,7 +157,7 @@ body {
 
 /* 联想词 */
 #relebox {
-    width: 484px;
+    width: 483px;
     border-radius: 15px;
     transition: all 0.5s;
     z-index: 10;
@@ -165,9 +165,10 @@ body {
 }
 
 #relevance {
-    width: 482px;
+    width: 490px;
     position: absolute;
     top: 230px;
+    left: 494px;
     padding: 0;
     margin: 0 auto;
     font-weight: 600;
