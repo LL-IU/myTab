@@ -17,7 +17,7 @@ function add() {
     bg.classList.add('bg-act');
     container.classList.add('container-focus');
 };
-
+var relevance = document.getElementById('relevance');
 function remove() {
     sbtn.classList.remove('sbtn-focus')
     itema.classList.remove('item-act');
@@ -25,7 +25,16 @@ function remove() {
     bg.classList.remove('bg-act');
     container.classList.remove('container-focus');
     content = sbtn.value; //点击搜索按钮会丢失聚焦，先保存值，在清除内容
+    window.onclick = function (event) {
+        if (event.target.id == relevance) {
+            oUl.style.display = 'block';
+            return;
+        } else {
+            oUl.style.display = 'none';//隐藏联想词
+        }
+    }
     sbtn.value = ""; //失去焦点清除内容
+    // oUl.style.display = 'none';//隐藏联想词
 };
 
 //获得时间
@@ -52,6 +61,40 @@ function myClick() {
     /* sbtn.focus(); */
     searchMy();
 }
+//获取联想词
+//输入框
+var oInp = document.getElementsByTagName('input')[0];
+//得到的数据存在ul的li里
+var oUl = document.getElementsByTagName('ul')[0];
+//获取输入内容，查找百度对应的src
+oInp.oninput = function () {
+    var value = this.value;
+    var oScript = document.createElement('script');
+    oScript.src = 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=' + value + '&cb=doJosn';
+    document.body.appendChild(oScript);
+    //输入框退格至清空的时候，隐藏联想词
+    if (value == "") {
+        oUl.style.display = 'none';
+    }
+}
+//对传回的数据进行处理（回调函数）
+function doJosn(data) {
+    var s = data.s;
+    var str = '';
+    if (s.length > 0) {
+        s.forEach(function (ele, index) {
+            str += '<li><a href =https://sp0.baidu.com/s?wd=' + ele + '>' + ele + '</a></li>';
+        })
+        oUl.innerHTML = str;
+        oUl.style.display = 'block';
+        var oA = document.getElementsByTagName('a');
+        for (let i = 0; i < oA.length; i++) {
+            oA[i].target = '_blank';//让联想词的链接在新标签页打开
+        }
+    } else {
+        oUl.style.display = 'none';
+    }
+}
 
 var keyArray = [81, 87, 69, 82, 84, 89, 85, 73, 79, 80, 65, 83, 68, 70, 71, 72, 74, 75, 76, 90, 88, 67, 86, 66, 78, 77];//按键盘排布的按键代码
 //在右键keytype后会停留在fn里，所以需要在那里也加入以下的按键事件，并添加一定的条件
@@ -66,11 +109,13 @@ window.onkeydown = function (e) {
     if (sbtn == document.activeElement) {//搜索框有焦点
         if (e.keyCode == 27) {
             sbtn.blur();//去焦点
+            oUl.style.display = 'none';//esc时隐藏
         }
         if (e.keyCode == 13) {//enter进行搜索
             //enter不会让input丢失聚焦，所以要先取值，因为不能执行到remove里的取值
             content = sbtn.value;
             searchMy();
+            oUl.style.display = 'none';
         };
     } else {
         if (e.keyCode == 27) {

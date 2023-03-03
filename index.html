@@ -7,7 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style.css">
     <link rel="icon" href="favicon.ico">
-    <title>MyTab</title>
+    <!-- 字体 -->
+    <link href='http://cdn.repository.webfont.com/webfonts/nomal/151115/29782/63fc6a996f50f60ef4067fcd.css'
+        rel='stylesheet' type='text/css' />
+    <title>My-Tab</title>
 </head>
 
 <body>
@@ -21,6 +24,11 @@
             onblur="remove()">
         <button class="fa-solid fa-magnifying-glass item" id="itemb" onclick="myClick()"><img src="search.png" alt="">
         </button>
+
+    </div>
+    <!-- 联想词 -->
+    <div id="relebox">
+        <ul id="relevance"></ul>
     </div>
     <!-- 右键菜单 -->
     <ul class="myul" id="myul">
@@ -111,7 +119,6 @@
             <p>M</p>
         </a>
     </div>
-    <!-- <script src="https://kit.fontawesome.com/f23451c27c.js" crossorigin="anonymous"></script> -->
     <script src="mytab.js">
     </script>
 </body>

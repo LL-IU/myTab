@@ -10,6 +10,7 @@ body {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+    font-family: 'Bauhaus-Bold';
 }
 
 #bg {
@@ -32,28 +33,6 @@ body {
     transform: scale(1.02);
 }
 
-/* 搜索框主体 */
-.container {
-    position: absolute;
-    top: 180px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    display: flex;
-    padding: auto 10px;
-    justify-content: space-around;
-    align-items: center;
-    border-radius: 30px;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 0 4px 1px rgba(208, 208, 208, 0.9);
-    z-index: 10;
-    transition: all 0.3s ease;
-}
-
-.container-focus {
-    background: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 8px 2px rgba(92, 92, 92, 0.7);
-}
-
 .timeBox {
     position: fixed;
     top: 105px;
@@ -69,6 +48,28 @@ body {
     line-height: 48px;
     font-size: 48px;
     user-select: none;
+}
+
+/* 搜索框主体 */
+.container {
+    position: absolute;
+    top: 180px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    padding: auto 10px;
+    justify-content: space-around;
+    align-items: center;
+    border-radius: 30px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 4px 1px rgba(208, 208, 208, 0.9);
+    z-index: 10;
+    transition: all 0.3s;
+}
+
+.container-focus {
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 8px 2px rgba(92, 92, 92, 0.7);
 }
 
 /* 搜索框左右的图标 */
@@ -129,6 +130,8 @@ body {
     padding: 0px 2px;
     text-align: center;
     font-size: 16px;
+    font-weight: 600;
+    font-family: 'Bauhaus-Bold';
     transition: all 0.5s ease-in-out;
     border: none;
     outline: none;
@@ -150,6 +153,52 @@ body {
     color: rgb(255, 255, 255);
     text-shadow: 0 0 2px #909090;
     user-select: none;
+}
+
+/* 联想词 */
+#relebox {
+    width: 482px;
+    border-radius: 15px;
+    transition: all 0.5s;
+    z-index: 10;
+}
+
+#relevance {
+    width: 482px;
+    position: absolute;
+    top: 228px;
+    padding: 0;
+    margin: 0 auto;
+    font-weight: 600;
+    background: #ffffff92;
+    border-radius: 15px;
+    transition: 0.5s;
+    overflow: hidden;
+}
+
+#relevance li {
+    list-style: none;
+    margin: 0 auto;
+    height: 26px;
+    /* padding-left: 15px; */
+    padding-top: 3px;
+    padding-bottom: 3px;
+    transition: 0.5s;
+    font-size: 14px;
+    text-align: center;
+}
+
+#relevance li:hover {
+    background-color: #ffffff6f;
+    /* padding-left: 24px; */
+    transition: 0.25s;
+    transform: scale(1.1, 1.1);
+}
+
+#relevance li a {
+    text-decoration: none;
+    color: black;
+    line-height: 32px;
 }
 
 /* 快捷链接 */
@@ -175,12 +224,12 @@ body {
 }
 
 #quickLink a:link {
-    color: #000000c6;
+    color: #000000ad;
     text-decoration: none;
 }
 
 #quickLink a:visited {
-    color: #000000c6;
+    color: #000000ad;
     text-decoration: none;
 }
 
