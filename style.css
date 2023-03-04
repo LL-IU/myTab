@@ -275,43 +275,43 @@ body {
 
 /* 右键编辑框 */
 .myul {
-    width: 270px;
+    width: 255px;
     height: 84px;
-    background-color: rgba(71, 71, 71, 0.727);
+    background-color: rgba(38, 38, 38, 0.831);
     position: absolute;
     display: none;
     z-index: 1;
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 .myul li {
     list-style: none;
-    width: 250px;
+    width: 245px;
     height: 30px;
     margin-left: 10px;
     margin-top: 7px;
     text-align: left;
-    font-size: 16px;
+    font-size: 18px;
     color: white;
-    line-height: 30px;
+    line-height: 34px;
     user-select: none;
     z-index: -1;
 }
 
 .myul li input {
-    width: 155px;
-    height: 22px;
+    width: 192px;
+    height: 24px;
     margin-left: 5px;
     border: none;
     border-bottom: 1px solid white;
     outline: none;
-    font-size: 17px;
+    font-size: 18px;
     color: white;
     /* border-radius: 3px; */
     background-color: rgba(120, 120, 120, 0);
 }
 
 .myul li input:focus {
-    background-color: rgba(181, 181, 181, 0.468);
+    background-color: rgba(181, 181, 181, 0.292);
     border-radius: 3px;
 }
