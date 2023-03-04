@@ -177,26 +177,28 @@ for (let i = 0; i < keytype.length; i++) {
                 }
                 if (e.keyCode == 13) {//enter
                     var newLink = linkInput.value;//获得输入的网址
-                    var newIcon = iconInput.value;
-                    kt.href = "https://" + newLink;//为什么要加"https://"，
+                    var newIcon = iconInput.value;//可以使用本地图片
+                    kt.href = newLink;
+                    //输入时要加https://或http://
+                    //为什么要加"https://"，
                     //因为不定义href时会自带网页本身的链接，不加就会把输入内容直接填到本身的网址后面，加上后可以替换掉原本的href
                     var imgs = kt.getElementsByTagName('img').length;//用于判断是否存在img
                     if (imgs == 0) {
                         //没有img时创建一个，放入网址图标
                         var linkImg = document.createElement("img");
-                        linkImg.src = "https://" + newIcon;
+                        linkImg.src = newIcon;
                         kt.appendChild(linkImg);
                     } else {
                         //有img时替换src
-                        kt.querySelector("img").src = "https://" + newIcon;//querySelector可以获得img
+                        kt.querySelector("img").src = newIcon;//querySelector可以获得img
                     }
                     myul.style.display = 'none';//输入完消失
                     linkInput.value = "";//输入框清空
                     iconInput.value = "";
                     //把数据存到localStorage
                     if (newLink || newIcon) {
-                        localStorage.setItem(i, "https://" + newLink);
-                        localStorage.setItem(i + 27, "https://" + newIcon);
+                        localStorage.setItem(i, newLink);
+                        localStorage.setItem(i + 27, newIcon);
                     }
                     if (newLink == "clear") {//在网址栏输入clear可以清除掉这里存储的网址
                         localStorage.removeItem(i);
@@ -228,6 +230,7 @@ for (let i = 0; i < keytype.length; i++) {
                 }
             }
         }
+        //加入联想词后，用此方法
         window.onclick = function (event) {
             if (linkInput != document.activeElement && iconInput != document.activeElement) {
                 myul.style.display = 'none';
