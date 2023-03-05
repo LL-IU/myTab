@@ -135,20 +135,26 @@ var ulId = document.getElementById("myul");
 var myli = document.getElementById("myli");//右键菜单列表项
 var linkInput = document.getElementById("linkInput");//右键菜单的链接输入框
 var iconInput = document.getElementById("iconInput");//右键图标链接输入框
+var iconSelect = document.getElementById("iconSelect");
 for (let i = 0; i < keytype.length; i++) {
     const kt = keytype[i];//对应某个链接
+    var imgs = kt.getElementsByTagName('img').length;//用于判断是否存在img
     //读取localstorage的缓存
     var kthref = localStorage.getItem(i);
     var ktimg = localStorage.getItem(i + 27);
+    var ktis = localStorage.getItem(i + 54);
     if (kthref) {//如果保存了就读取，没有就默认
         kt.href = kthref;
     }
-    if (ktimg) {
+    if (ktis) {
         var linkImg = document.createElement("img");
-        linkImg.src = ktimg;
         kt.appendChild(linkImg);
+        linkImg.src = ktis;
+    } else if (ktimg) {
+        var linkImg = document.createElement("img");
+        kt.appendChild(linkImg);
+        linkImg.src = ktimg;
     }
-
     kt.addEventListener('contextmenu', fn);
     function fn(e) {
         e.preventDefault();//preventDefault()阻止默认事件（这里阻止了默认菜单）
@@ -182,12 +188,14 @@ for (let i = 0; i < keytype.length; i++) {
                     //输入时要加https://或http://
                     //为什么要加"https://"，
                     //因为不定义href时会自带网页本身的链接，不加就会把输入内容直接填到本身的网址后面，加上后可以替换掉原本的href
-                    var imgs = kt.getElementsByTagName('img').length;//用于判断是否存在img
                     if (imgs == 0) {
                         //没有img时创建一个，放入网址图标
-                        var linkImg = document.createElement("img");
-                        linkImg.src = newIcon;
-                        kt.appendChild(linkImg);
+                        // var linkImg = document.createElement("img");
+                        if (newIcon != '') {
+                            var linkImg = document.createElement("img");
+                            kt.appendChild(linkImg);
+                            linkImg.src = newIcon;
+                        }
                     } else {
                         //有img时替换src
                         kt.querySelector("img").src = newIcon;//querySelector可以获得img
@@ -200,9 +208,10 @@ for (let i = 0; i < keytype.length; i++) {
                         localStorage.setItem(i, newLink);
                         localStorage.setItem(i + 27, newIcon);
                     }
-                    if (newLink == "clear") {//在网址栏输入clear可以清除掉这里存储的网址
+                    if (newLink == "c") {//在网址栏输入clear可以清除掉这里存储的网址
                         localStorage.removeItem(i);
                         localStorage.removeItem(i + 27);
+                        localStorage.removeItem(i + 54);
                     }
                 }
             }
@@ -239,22 +248,27 @@ for (let i = 0; i < keytype.length; i++) {
             }
             //如果点击菜单外的任意位置，菜单被隐藏
         }
+
+        iconSelect.addEventListener('change', readFile, false); //如果支持就监听改变事件，一旦改变了就运行readFile函数。
+        function readFile() {
+            if (imgs == 0) {
+                var file = this.files[0]; //获取file对象
+                //判断file的类型是不是图片类型。
+                if (!/image\/\w+/.test(file.type)) {
+                    alert("文件必须为图片！");
+                    return false;
+                }
+                var reader = new FileReader(); //声明一个FileReader实例
+                reader.readAsDataURL(file); //调用readAsDataURL方法来读取选中的图像文件
+                //最后在onload事件中，获取到成功读取的文件内容，并以插入一个img节点的方式显示选中的图片
+                reader.onload = function (e) {
+                    var linkImg = document.createElement("img");
+                    kt.appendChild(linkImg);
+                    linkImg.setAttribute('src', this.result);
+                    localStorage.setItem(i + 54, this.result);
+
+                }
+            }
+        }
     }
-    //以下方法在加入联想词后出bug失效，
-    // window.onclick = function (event) {
-    //     //if (event.target.id == "myli") {//可行
-    //     if (event.target.id == "linkInput" || event.target.id == "iconInput" || event.target.id == "myli") {
-    //         //如果点击到输入框或者li上，不会消失
-    //         //好像必须用id才有效
-    //         //myul.classList.add("test");//用于测试if条件是否成立
-    //         myul.style.display = 'block';
-    //         // return;
-    //     } else if (event.target.id == "bg") {
-    //         myul.style.display = 'none';
-    //         linkInput.value = "";
-    //         iconInput.value = "";
-    //         //如果点击菜单外的任意位置，菜单被隐藏
-    //     }
-    //     //myul.classList.remove("test");
-    // }
 }

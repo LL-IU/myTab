@@ -276,7 +276,7 @@ body {
 
 /* 右键编辑框 */
 .myul {
-    width: 255px;
+    width: 275px;
     height: 84px;
     background-color: rgba(38, 38, 38, 0.831);
     position: absolute;
@@ -287,7 +287,7 @@ body {
 
 .myul li {
     list-style: none;
-    width: 245px;
+    width: 265px;
     height: 30px;
     margin-left: 10px;
     margin-top: 7px;
@@ -297,9 +297,11 @@ body {
     line-height: 34px;
     user-select: none;
     z-index: -1;
+    display: flex;
 }
 
-.myul li input {
+#linkInput,
+#iconInput {
     width: 192px;
     height: 24px;
     margin-left: 5px;
@@ -312,7 +314,28 @@ body {
     background-color: rgba(120, 120, 120, 0);
 }
 
-.myul li input:focus {
+#linkInput:focus {
     background-color: rgba(181, 181, 181, 0.292);
     border-radius: 3px;
+}
+
+#iconInput:focus {
+    background-color: rgba(181, 181, 181, 0.292);
+    border-radius: 3px;
+}
+
+#iconSelect {
+    opacity: 0;
+    width: 24px;
+    height: 24px;
+}
+
+#iconButton {
+    width: 24px;
+    height: 24px;
+    margin-left: -24px;
+    border-radius: 3px;
+    background: #383838;
+    box-shadow: 7px 7px 14px #292929,
+        -7px -7px 14px #474747;
 }
