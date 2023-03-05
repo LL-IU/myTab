@@ -86,7 +86,7 @@ function doJosn(data) {
     var str = '';
     if (s.length > 0) {
         s.forEach(function (ele, index) {
-            str += '<li><a href =https://sp0.baidu.com/s?wd=' + ele + '>' + ele + '</a></li>';
+            str += '<li><a href =https://sp0.baidu.com/s?wd=' + ele + '>' + '<p>' + ele + '</p>' + '</a></li>';
         })
         oUl.innerHTML = str;
         oUl.style.display = 'block';
