@@ -15,6 +15,7 @@
 
 <body>
     <img src="bg.jpg" alt class="focus" id="bg" oncontextmenu="return false">
+    <!-- oncontextmenu="return false" -->
     <!-- <div class="cover"></div> -->
     <div class="timeBox"></div>
     <!-- 搜索框 -->
@@ -37,6 +38,12 @@
             <div id="iconButton"></div>
         </li>
     </ul>
+    <div id="bgChose">
+        <input type="file" id="bgSelect">
+        <div id="bgButton">
+            <p>选择背景</p>
+        </div>
+    </div>
     <!-- 快捷链接 -->
     <div id="quickLink"><!-- 左键单击判断有没有url，没有创建，有跳转 ,先不要img，用js添加-->
         <a class="keytype" id="keyQ" target="_blank" href="">

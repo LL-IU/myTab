@@ -272,3 +272,37 @@ for (let i = 0; i < keytype.length; i++) {
         }
     }
 }
+//右键修改背景
+var bgChose = document.getElementById("bgChose");
+var bgSelect = document.getElementById("bgSelect");
+var bghref = localStorage.getItem(100);
+if (bghref) {
+    bg.setAttribute('src', bghref);
+}
+bg.addEventListener('contextmenu', bgChange);
+function bgChange(e) {
+    e.preventDefault();
+    bgChose.style.display = 'block';
+    let X = e.pageX;
+    let Y = e.pageY;
+    bgChose.style.left = X + 'px';
+    bgChose.style.top = Y + 'px';
+
+    bgSelect.addEventListener('change', readFile, false); //如果支持就监听改变事件，一旦改变了就运行readFile函数。
+    function readFile() {
+        var file = this.files[0]; //获取file对象
+        //判断file的类型是不是图片类型。
+        if (!/image\/\w+/.test(file.type)) {
+            alert("文件必须为图片！");
+            return false;
+        }
+        var reader = new FileReader(); //声明一个FileReader实例
+        reader.readAsDataURL(file); //调用readAsDataURL方法来读取选中的图像文件
+        //最后在onload事件中，获取到成功读取的文件内容，并以插入一个img节点的方式显示选中的图片
+        reader.onload = function (e) {
+            bg.setAttribute('src', this.result);
+            localStorage.removeItem(100);
+            localStorage.setItem(100, this.result);
+        }
+    }
+}

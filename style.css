@@ -15,7 +15,6 @@ body {
 
 #bg {
     content: "";
-    /* background: url(./bg1.png) no-repeat center; */
     background-position: center;
     background-attachment: fixed;
     background-size: cover;
@@ -24,13 +23,40 @@ body {
     height: 100%;
     position: absolute;
     transition: all 0.2s ease-in-out;
-    z-index: -10;
+    /* z-index: -10; */
     user-select: none;
 }
 
 .bg-act {
     /* filter: blur(1px); */
     transform: scale(1.02);
+}
+
+#bgChose {
+    position: absolute;
+    width: 120px;
+    height: 50px;
+    background: #ffffff;
+    display: none;
+}
+
+#bgSelect {
+    outline: 1px solid red;
+    margin: 10px;
+    width: 100px;
+    height: 30px;
+    opacity: 0;
+}
+
+#bgButton {
+    outline: 1px solid red;
+    margin: 10px;
+    margin-top: -40px;
+    width: 100px;
+    height: 30px;
+    opacity: 1;
+    text-align: center;
+    line-height: 30px;
 }
 
 .timeBox {
