@@ -275,6 +275,8 @@ for (let i = 0; i < keytype.length; i++) {
 //右键修改背景
 var bgChangeMenu = document.getElementById("bgChangeMenu");
 var bgSelect = document.getElementById("bgSelect");
+var base64;//图片处理前的base64
+var dealimg;//处理后
 var bghref = localStorage.getItem(-1);
 if (bghref) {
     bg.setAttribute('src', bghref);
@@ -306,12 +308,52 @@ function bgChange(e) {
         //最后在onload事件中，获取到成功读取的文件内容，并以插入一个img节点的方式显示选中的图片
         reader.onload = function (e) {
             bg.setAttribute('src', this.result);
+            base64 = this.result;
+            // console.log(base64.length);
+            dealImage(base64, 1920, useimg);//压缩图片在一定范围
+            function useimg(base64) {
+                dealimg = base64;
+                localStorage.setItem(-1, dealimg);
+                // console.log(dealimg.length);
+            }
             // localStorage.removeItem(-1);
-            localStorage.setItem(-1, this.result);
+            // localStorage.setItem(-1, this.result);
         }
     }
 }
+//清除背景图片
 function bgClear() {
     bg.setAttribute('src', 'bg.jpg');
     localStorage.removeItem(-1);
+}
+//压缩背景图片方法
+function dealImage(base64, w, callback) {
+    var newImage = new Image();
+    var quality = 0.9;    //压缩系数0-1之间
+    newImage.src = base64;
+    newImage.setAttribute("crossOrigin", 'Anonymous');	//url为外域时需要
+    var imgWidth, imgHeight;
+    newImage.onload = function () {
+        imgWidth = this.width;
+        imgHeight = this.height;
+        var canvas = document.createElement("canvas");
+        var ctx = canvas.getContext("2d");
+        if (Math.max(imgWidth, imgHeight) > w) {
+            if (imgWidth > imgHeight) {
+                canvas.width = w;
+                canvas.height = w * imgHeight / imgWidth;
+            } else {
+                canvas.height = w;
+                canvas.width = w * imgWidth / imgHeight;
+            }
+        } else {
+            canvas.width = imgWidth;
+            canvas.height = imgHeight;
+            quality = 0.9;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(this, 0, 0, canvas.width, canvas.height);
+        var base64 = canvas.toDataURL("image/jpeg", quality); //压缩语句
+        callback(base64);//必须通过回调函数返回，否则无法及时拿到该值
+    }
 }
