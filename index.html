@@ -7,14 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style.css">
     <link rel="icon" href="favicon.ico">
-    <!-- 字体 -->
-    <link href='http://cdn.repository.webfont.com/webfonts/nomal/151115/29782/63fc6a996f50f60ef4067fcd.css'
-        rel='stylesheet' type='text/css' />
     <title>My-Tab</title>
 </head>
 
 <body>
-    <img src="bg.jpg" alt class="focus" id="bg" oncontextmenu="return false">
+    <img src="bg.jpg" alt="" class="focus" id="bg" oncontextmenu="return false">
     <!-- oncontextmenu="return false" -->
     <!-- <div class="cover"></div> -->
     <div class="timeBox"></div>
@@ -34,15 +31,18 @@
     <!-- 右键菜单 -->
     <ul class="myul" id="myul">
         <li id="myli">网址<input type="text" id="linkInput" autocomplete="off"></li>
-        <li id="myli">图标<input type="text" id="iconInput" autocomplete="off"><input type="file" id="iconSelect">
+        <li id="myli">图标<input type="text" id="iconInput" autocomplete="off">
+            <input type="file" id="iconSelect">
             <div id="iconButton"></div>
         </li>
     </ul>
-    <div id="bgChose">
+    <!-- 右键选择背景 -->
+    <div id="bgChangeMenu">
         <input type="file" id="bgSelect">
-        <div id="bgButton">
-            <p>选择背景</p>
+        <div id="bgSelectButton">
+            <p>选择背景(2M以内)</p>
         </div>
+        <div id="bgClear" onclick="bgClear()">清除背景</div>
     </div>
     <!-- 快捷链接 -->
     <div id="quickLink"><!-- 左键单击判断有没有url，没有创建，有跳转 ,先不要img，用js添加-->

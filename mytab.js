@@ -273,22 +273,27 @@ for (let i = 0; i < keytype.length; i++) {
     }
 }
 //右键修改背景
-var bgChose = document.getElementById("bgChose");
+var bgChangeMenu = document.getElementById("bgChangeMenu");
 var bgSelect = document.getElementById("bgSelect");
-var bghref = localStorage.getItem(100);
+var bghref = localStorage.getItem(-1);
 if (bghref) {
     bg.setAttribute('src', bghref);
 }
 bg.addEventListener('contextmenu', bgChange);
 function bgChange(e) {
     e.preventDefault();
-    bgChose.style.display = 'block';
+    bgChangeMenu.style.display = 'block';
     let X = e.pageX;
     let Y = e.pageY;
-    bgChose.style.left = X + 'px';
-    bgChose.style.top = Y + 'px';
+    bgChangeMenu.style.left = X + 'px';
+    bgChangeMenu.style.top = Y + 'px';
 
-    bgSelect.addEventListener('change', readFile, false); //如果支持就监听改变事件，一旦改变了就运行readFile函数。
+    window.onclick = function (e) {
+        if (bgSelect != document.activeElement) {
+            bgChangeMenu.style.display = 'none';
+        }
+    }
+    bgSelect.addEventListener('change', readFile, false); //运行readFile函数。
     function readFile() {
         var file = this.files[0]; //获取file对象
         //判断file的类型是不是图片类型。
@@ -301,8 +306,12 @@ function bgChange(e) {
         //最后在onload事件中，获取到成功读取的文件内容，并以插入一个img节点的方式显示选中的图片
         reader.onload = function (e) {
             bg.setAttribute('src', this.result);
-            localStorage.removeItem(100);
-            localStorage.setItem(100, this.result);
+            // localStorage.removeItem(-1);
+            localStorage.setItem(-1, this.result);
         }
     }
+}
+function bgClear() {
+    bg.setAttribute('src', 'bg.jpg');
+    localStorage.removeItem(-1);
 }
