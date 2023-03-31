@@ -41,8 +41,8 @@ body {
 /* 右键菜单修改背景 */
 #bgChangeMenu {
     position: absolute;
-    width: 116px;
-    height: 71px;
+    width: 117px;
+    height: 104px;
     background: #00000047;
     display: none;
     border-radius: 8px;
@@ -59,11 +59,10 @@ body {
     opacity: 0;
 }
 
-#bgSelectButton {
+.bgOption {
     outline: 1px solid rgb(203, 203, 203);
     margin: 8px;
     margin-bottom: 0;
-    margin-top: -26px;
     width: 100px;
     height: 26px;
     opacity: 1;
@@ -72,26 +71,10 @@ body {
     color: #ffffff;
     background-color: #00000077;
     border-radius: 4px;
-
 }
 
-/* #bgSelectButton p {
-    color: #ffffff;
-    font-size: 12px;
-} */
-
-#bgClear {
-    outline: 1px solid rgb(203, 203, 203);
-    margin: 8px;
-    margin-bottom: 0;
-    width: 100px;
-    height: 26px;
-    opacity: 1;
-    text-align: center;
-    line-height: 26px;
-    color: #ffffff;
-    background-color: #00000077;
-    border-radius: 4px;
+#bgSelectButton {
+    margin-top: -26px;
 }
 
 /* 时间 */
@@ -279,6 +262,7 @@ body {
     background-color: #ffffff00;
     border-radius: 28px;
     /* z-index: 1; */
+    /* opacity: 1; */
 }
 
 #quickLink p {

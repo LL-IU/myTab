@@ -357,3 +357,19 @@ function dealImage(base64, w, callback) {
         callback(base64);//必须通过回调函数返回，否则无法及时拿到该值
     }
 }
+//隐藏快速链接
+var hideLinkCode = localStorage.getItem(-2);
+if (hideLinkCode == 1) {
+    ql.style.opacity = '1';
+} else if (hideLinkCode == 0) {
+    ql.style.opacity = '0';
+}
+function hideLink() {
+    if (hideLinkCode == 1) {
+        ql.style.opacity = '0';
+        localStorage.setItem(-2, 0);
+    } else if (hideLinkCode == 0) {
+        ql.style.opacity = '1';
+        localStorage.setItem(-2, 1);
+    }
+}

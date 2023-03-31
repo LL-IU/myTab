@@ -39,10 +39,11 @@
     <!-- 右键选择背景 -->
     <div id="bgChangeMenu">
         <input type="file" id="bgSelect">
-        <div id="bgSelectButton">
+        <div id="bgSelectButton" class="bgOption">
             <p>选择背景</p>
         </div>
-        <div id="bgClear" onclick="bgClear()">清除背景</div>
+        <div id="bgClear" class="bgOption" onclick="bgClear()">清除背景</div>
+        <div id="hideLink" class="bgOption" onclick="hideLink()">显隐链接</div>
     </div>
     <!-- 快捷链接 -->
     <div id="quickLink"><!-- 左键单击判断有没有url，没有创建，有跳转 ,先不要img，用js添加-->
