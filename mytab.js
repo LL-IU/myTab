@@ -365,7 +365,8 @@ if (hideLinkCode == 1) {
     ql.style.opacity = '0';
 }
 function hideLink() {
-    if (hideLinkCode == 1) {
+    hideLinkCode = localStorage.getItem(-2);
+    if (hideLinkCode == 1 || hideLinkCode == null) {
         ql.style.opacity = '0';
         localStorage.setItem(-2, 0);
     } else if (hideLinkCode == 0) {
