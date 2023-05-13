@@ -297,6 +297,11 @@ body {
     border-radius: 22px;
 }
 
+#quickLink .keytype:hover {
+    background-color: #dbdbdb;
+    transform: scale(1.05);
+}
+
 .keytype img {
     position: absolute;
     width: 24px;
