@@ -282,8 +282,10 @@ if (bghref) {
     bg.setAttribute('src', bghref);
 }
 bg.addEventListener('contextmenu', bgChange);
+// 修改背景图
 function bgChange(e) {
     e.preventDefault();
+    // 右键菜单的显隐
     bgChangeMenu.style.display = 'block';
     let X = e.pageX;
     let Y = e.pageY;
@@ -295,6 +297,7 @@ function bgChange(e) {
             bgChangeMenu.style.display = 'none';
         }
     }
+    // 选择背景
     bgSelect.addEventListener('change', readFile, false); //运行readFile函数。
     function readFile() {
         var file = this.files[0]; //获取file对象
@@ -372,5 +375,48 @@ function hideLink() {
     } else if (hideLinkCode == 0) {
         ql.style.opacity = '1';
         localStorage.setItem(-2, 1);
+    }
+}
+// 修改时间字体颜色
+var timeColorCode = localStorage.getItem(-3);
+if (timeColorCode == 1) {
+    timeBox.style.color = "white";
+} else if (timeColorCode == 0) {
+    timeBox.style.color = "black";
+}
+function timeColorSet() {
+    timeColorCode = localStorage.getItem(-3);
+    if (timeColorCode == 1 || timeColorCode == null) {
+        timeBox.style.color = "black";
+        localStorage.setItem(-3, 0);
+    } else if (timeColorCode == 0) {
+        timeBox.style.color = "white";
+        localStorage.setItem(-3, 1);
+    }
+}
+// 修改链接字体颜色
+var linkColorCode = localStorage.getItem(-4);
+var linkPLength = ql.getElementsByTagName('p').length;
+// 刷新时遍历修改颜色
+for (let i = 0; i < linkPLength; i++) {
+    var linkPColor = ql.getElementsByTagName('p')[i];
+    if (linkColorCode == 1) {
+        linkPColor.style.color = "black";
+    } else if (linkColorCode == 0) {
+        linkPColor.style.color = "white";
+    }
+    function linkColorSet() {
+        linkColorCode = localStorage.getItem(-4);
+        // 点击修改时遍历，全部修改颜色
+        for (let i = 0; i < linkPLength; i++) {
+            var linkPColor = ql.getElementsByTagName('p')[i];
+            if (linkColorCode == 1 || linkColorCode == null) {
+                linkPColor.style.color = "white";
+                localStorage.setItem(-4, 0);
+            } else if (linkColorCode == 0) {
+                linkPColor.style.color = "black";
+                localStorage.setItem(-4, 1);
+            }
+        }
     }
 }
