@@ -41,17 +41,17 @@ function remove() {
 };
 
 //获得时间
-setInterval(function () {
-    var date = new Date()
-    let hh = padZero(date.getHours())
-    let mm = padZero(date.getMinutes())
-    //let ss = padZero(date.getSeconds())
-    timeBox.innerText = hh + ':' + mm; /* + ':' + ss */
-}, 1000);
+// setInterval(function () {
+//     var date = new Date()
+//     let hh = padZero(date.getHours())
+//     let mm = padZero(date.getMinutes())
+//     //let ss = padZero(date.getSeconds())
+//     timeBox.innerText = hh + ':' + mm; /* + ':' + ss */
+// }, 1000);
 
-function padZero(n) {
-    return n > 9 ? n : '0' + n
-};
+// function padZero(n) {
+//     return n > 9 ? n : '0' + n
+// };
 
 //搜索事件
 function searchMy() {

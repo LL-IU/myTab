@@ -95,6 +95,22 @@ body {
     user-select: none;
 }
 
+/* 添加logo，去掉时间 */
+#logo {
+    position: fixed;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px;
+    background-color: transparent;
+    height: 48px;
+    color: white;
+    text-align: center;
+    line-height: 48px;
+    font-size: 48px;
+    user-select: none;
+}
+
 /* 搜索框主体 */
 .container {
     position: absolute;
