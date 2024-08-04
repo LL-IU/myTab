@@ -3,6 +3,11 @@
     src: url('font/hanyifenggukaiti.ttf');
 }
 
+@font-face {
+    font-family: bailubangbangshouxieti;
+    src: url('font/bailubangbangshouxieti.ttf');
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -15,7 +20,7 @@ body {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    font-family: "hanyifenggukaiti";
+    /* font-family: "hanyifenggukaiti"; */
 }
 
 /* 背景 */
@@ -49,6 +54,7 @@ body {
     padding-bottom: 5px;
     user-select: none;
     font-size: 16px;
+    font-family: 'bailubangbangshouxieti';
 }
 
 #bgSelect {
@@ -109,6 +115,7 @@ body {
     line-height: 48px;
     font-size: 48px;
     user-select: none;
+    font-family: 'bailubangbangshouxieti';
 }
 
 /* 搜索框主体 */
@@ -192,7 +199,7 @@ body {
     text-align: center;
     font-size: 16px;
     /* font-weight: 600; */
-    font-family: "hanyifenggukaiti";
+    font-family: "bailubangbangshouxieti";
     transition: all 0.5s ease-in-out;
     border: none;
     outline: none;
@@ -232,7 +239,7 @@ body {
     padding: 0;
     margin: 0 auto;
     /* font-weight: 600; */
-    font-family: "hanyifenggukaiti";
+    font-family: "bailubangbangshouxieti";
     background: #ffffff49;
     border-radius: 14px;
     transition: 0.5s;
@@ -287,7 +294,7 @@ body {
     font-size: 14px;
     line-height: 14px;
     /* font-weight: 800; */
-    font-family: "hanyifenggukaiti";
+    font-family: "bailubangbangshouxieti";
     user-select: none;
 }
 
@@ -367,6 +374,7 @@ body {
     user-select: none;
     z-index: -1;
     display: flex;
+    font-family: 'bailubangbangshouxieti';
 }
 
 #linkInput,
