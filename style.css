@@ -1,11 +1,6 @@
 @font-face {
-    font-family: hanyifenggukaiti;
-    src: url('font/hanyifenggukaiti.ttf');
-}
-
-@font-face {
-    font-family: bailubangbangshouxieti;
-    src: url('font/bailubangbangshouxieti.ttf');
+    font-family: youqutiyanshiban;
+    src: url('font/youqutiyanshiban.ttf');
 }
 
 * {
@@ -20,7 +15,7 @@ body {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    /* font-family: "hanyifenggukaiti"; */
+    font-family: "youqutiyanshiban";
 }
 
 /* 背景 */
@@ -54,7 +49,7 @@ body {
     padding-bottom: 5px;
     user-select: none;
     font-size: 16px;
-    font-family: 'bailubangbangshouxieti';
+    /* font-family: 'bailubangbangshouxieti'; */
 }
 
 #bgSelect {
@@ -115,7 +110,7 @@ body {
     line-height: 48px;
     font-size: 48px;
     user-select: none;
-    font-family: 'bailubangbangshouxieti';
+    /* font-family: 'bailubangbangshouxieti'; */
 }
 
 /* 搜索框主体 */
@@ -199,7 +194,7 @@ body {
     text-align: center;
     font-size: 16px;
     /* font-weight: 600; */
-    font-family: "bailubangbangshouxieti";
+    font-family: "youqutiyanshiban";
     transition: all 0.5s ease-in-out;
     border: none;
     outline: none;
@@ -239,7 +234,7 @@ body {
     padding: 0;
     margin: 0 auto;
     /* font-weight: 600; */
-    font-family: "bailubangbangshouxieti";
+    /* font-family: "bailubangbangshouxieti"; */
     background: #ffffff49;
     border-radius: 14px;
     transition: 0.5s;
@@ -294,7 +289,7 @@ body {
     font-size: 14px;
     line-height: 14px;
     /* font-weight: 800; */
-    font-family: "bailubangbangshouxieti";
+    /* font-family: "bailubangbangshouxieti"; */
     user-select: none;
 }
 
@@ -374,7 +369,7 @@ body {
     user-select: none;
     z-index: -1;
     display: flex;
-    font-family: 'bailubangbangshouxieti';
+    /* font-family: 'bailubangbangshouxieti'; */
 }
 
 #linkInput,
@@ -386,7 +381,7 @@ body {
     border-bottom: 1px solid white;
     outline: none;
     font-size: 18px;
-    font-family: "hanyifenggukaiti";
+    /* font-family: "hanyifenggukaiti"; */
     color: white;
     /* border-radius: 3px; */
     background-color: rgba(120, 120, 120, 0);
