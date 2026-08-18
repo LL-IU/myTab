@@ -413,6 +413,70 @@ body {
     background: #212121;
 }
 
+/* 搜索引擎切换 */
+#engineMenu {
+    position: absolute;
+    background: rgba(38, 38, 38, 0.9);
+    border-radius: 8px;
+    display: none;
+    z-index: 20;
+    min-width: 110px;
+    padding: 4px;
+    user-select: none;
+}
+
+.engineOption {
+    padding: 6px 12px;
+    color: #ffffff;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: "hanyifenggukaiti";
+}
+
+.engineOption:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.engine-active {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.engine-custom {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 4px;
+}
+
+/* 引擎按钮上的首字母（无图标引擎） */
+.fa-windows .engine-letter {
+    display: block;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 15px;
+    font-style: normal;
+    text-align: center;
+    color: #333333;
+}
+
+/* 文字图标（替代图片图标的网站） */
+.keytype .keytile {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: "hanyifenggukaiti";
+    user-select: none;
+}
+
 /* 小屏适配 */
 @media (max-width: 900px) {
     .timeBox {

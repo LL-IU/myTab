@@ -11,6 +11,7 @@
  * 6. 空链接点击时弹出编辑菜单（对应 index.html 中注释的设计意图）
  * 7. 输入网址自动补全协议（https://），避免拼到当前页面地址后面
  * 8. localStorage 键位保持不变，已有自定义数据完全兼容
+ * 9. v3.0 新增：搜索引擎切换（含自定义引擎）、Alt+字母唤出编辑菜单、文字图标
  */
 (function () {
     'use strict';
@@ -50,11 +51,105 @@
     }, 1000);
 
     /* ================= 搜索 ================= */
+    // 搜索引擎列表（{q} 为关键词占位符）
+    var ENGINE_LIST = [
+        { name: '百度', url: 'https://www.baidu.com/s?ie=utf-8&word={q}', icon: 'baidu.png' },
+        { name: '必应', url: 'https://www.bing.com/search?q={q}' },
+        { name: '谷歌', url: 'https://www.google.com/search?q={q}' },
+        { name: '搜狗', url: 'https://www.sogou.com/web?query={q}' }
+    ];
+
+    function getEngines() {
+        var list = ENGINE_LIST.slice();
+        var custom = localStorage.getItem(-5);
+        if (custom) {
+            try { list.push(JSON.parse(custom)); } catch (e) { /* 忽略损坏的自定义引擎 */ }
+        }
+        return list;
+    }
+
+    function getCurrentEngine() {
+        var idx = parseInt(localStorage.getItem(-6), 10);
+        var list = getEngines();
+        return list[isNaN(idx) ? 0 : idx] || list[0];
+    }
+
+    function isBaiduEngine() {
+        return getCurrentEngine().url.indexOf('baidu.com') > -1;
+    }
+
+    function buildSearchUrl(keyword) {
+        return getCurrentEngine().url.replace('{q}', encodeURIComponent(keyword));
+    }
+
     function searchMy() {
         var keyword = sbtn.value.trim();
         if (!keyword) { sbtn.focus(); return; } // 空内容不弹空白页
-        window.open('https://www.baidu.com/s?ie=utf-8&word=' + encodeURIComponent(keyword));
+        window.open(buildSearchUrl(keyword));
     }
+
+    /* ================= 搜索引擎切换 ================= */
+    var engineMenu = document.getElementById('engineMenu');
+
+    function renderEngineMenu() {
+        var list = getEngines();
+        var idx = parseInt(localStorage.getItem(-6), 10) || 0;
+        engineMenu.innerHTML = '';
+        list.forEach(function (e, i) {
+            var div = document.createElement('div');
+            div.className = 'engineOption' + (i === idx ? ' engine-active' : '');
+            div.textContent = e.name;
+            div.addEventListener('click', function () {
+                localStorage.setItem(-6, String(i));
+                applyEngine();
+                engineMenu.style.display = 'none';
+            });
+            engineMenu.appendChild(div);
+        });
+        var custom = document.createElement('div');
+        custom.className = 'engineOption engine-custom';
+        custom.textContent = '自定义…';
+        custom.addEventListener('click', function () {
+            var name = prompt('搜索引擎名称：', '我的引擎');
+            if (!name) return;
+            var url = prompt('搜索链接（用 {q} 代替关键词，例如 https://example.com/search?q={q}）：', 'https://www.baidu.com/s?ie=utf-8&word={q}');
+            if (!url) return;
+            if (url.indexOf('{q}') === -1) { alert('链接中必须包含 {q} 占位符'); return; }
+            localStorage.setItem(-5, JSON.stringify({ name: name, url: url }));
+            localStorage.setItem(-6, String(getEngines().length - 1));
+            applyEngine();
+            renderEngineMenu();
+            engineMenu.style.display = 'none';
+        });
+        engineMenu.appendChild(custom);
+    }
+
+    // 更新搜索框左侧按钮：显示当前引擎的图标或首字母
+    function applyEngine() {
+        var e = getCurrentEngine();
+        itema.innerHTML = '';
+        if (e.icon) {
+            var img = document.createElement('img');
+            img.src = e.icon;
+            img.alt = e.name;
+            itema.appendChild(img);
+        } else {
+            var span = document.createElement('span');
+            span.className = 'engine-letter';
+            span.textContent = e.name.charAt(0);
+            itema.appendChild(span);
+        }
+        itema.title = '搜索引擎：' + e.name + '（点击切换）';
+        hideSuggest();
+    }
+
+    itema.addEventListener('click', function () {
+        var rect = itema.getBoundingClientRect();
+        renderEngineMenu();
+        engineMenu.style.display = 'block';
+        engineMenu.style.left = (rect.left + window.scrollX) + 'px';
+        engineMenu.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+    });
 
     // 聚焦 / 失焦时的样式切换（不再清除已输入内容，点击搜索按钮不再依赖失焦时序）
     function add() {
@@ -86,7 +181,7 @@
     sbtn.addEventListener('input', function () {
         clearTimeout(suggestTimer);
         var value = sbtn.value.trim();
-        if (!value) { hideSuggest(); return; }
+        if (!value || !isBaiduEngine()) { hideSuggest(); return; } // 联想词仅百度可用
         suggestTimer = setTimeout(function () { fetchSuggest(value); }, 150); // 防抖
     });
 
@@ -100,6 +195,7 @@
 
     // JSONP 回调（必须是全局函数，供百度返回的脚本调用）
     window.doJosn = function (data) {
+        if (!isBaiduEngine()) { hideSuggest(); return; } // 切换引擎后忽略旧联想词
         var list = data.s || [];
         oUl.innerHTML = '';
         if (list.length) {
@@ -131,13 +227,65 @@
         var savedLocal = localStorage.getItem(i + 54);
         if (savedHref) kt.href = savedHref;
         if (savedLocal) setIcon(kt, savedLocal);            // 本地图片优先
-        else if (savedIcon) setIcon(kt, savedIcon);
+        else if (savedIcon) {                               // 图标可能是图片链接或文字
+            if (isImageUrl(savedIcon)) setIcon(kt, savedIcon);
+            else setTile(kt, savedIcon, tileColor(savedIcon));
+        } else {
+            ensureTile(kt);                                 // 有链接无图标 → 自动文字图标
+        }
+    }
+
+    function removeIconEl(kt) {
+        var img = kt.querySelector('img');
+        if (img) img.remove();
+        var tile = kt.querySelector('.keytile');
+        if (tile) tile.remove();
     }
 
     function setIcon(kt, src) {
-        var img = kt.querySelector('img');
-        if (!img) { img = document.createElement('img'); kt.appendChild(img); }
+        removeIconEl(kt);
+        var img = document.createElement('img');
+        kt.appendChild(img);
         img.src = src;
+    }
+
+    // 判断图标输入是图片链接还是文字（文字用于替代图标）
+    function isImageUrl(s) {
+        return /^data:image\//i.test(s) ||
+            /^https?:\/\/.*\.(png|jpe?g|gif|webp|ico|svg|avif|bmp)(\?.*)?$/i.test(s);
+    }
+
+    // 根据字符串生成稳定的背景色
+    function tileColor(str) {
+        var h = 0;
+        for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 360;
+        return 'hsl(' + h + ', 55%, 42%)';
+    }
+
+    // 文字图标（给没有图片图标的网站使用）
+    function setTile(kt, text, color) {
+        removeIconEl(kt);
+        var tile = document.createElement('span');
+        tile.className = 'keytile';
+        tile.textContent = text.slice(0, 2);
+        tile.style.backgroundColor = color || tileColor(text);
+        kt.appendChild(tile);
+    }
+
+    // 有链接但没有图标时：先自动尝试获取网站 favicon，失败则用域名首字母生成文字图标
+    function ensureTile(kt) {
+        if (kt.querySelector('img') || kt.querySelector('.keytile')) return;
+        var href = kt.getAttribute('href');
+        if (!href) return;
+        var host = href;
+        try { host = new URL(href).hostname; } catch (e) { host = href.replace(/^https?:\/\//i, '').split('/')[0]; }
+        var fav = document.createElement('img');
+        fav.src = 'https://' + host + '/favicon.ico';
+        fav.onerror = function () {
+            fav.remove(); // favicon 获取失败 → 退回文字图标
+            setTile(kt, host.charAt(0).toUpperCase() || '?', tileColor(host));
+        };
+        kt.appendChild(fav);
     }
 
     function getKeyIndex(kt) { return Array.prototype.indexOf.call(keytype, kt); }
@@ -185,8 +333,7 @@
         // 输入 clear 清除该格子的记录（并重置 DOM，不再残留 href="clear"）
         if (newLink.toLowerCase() === 'clear') {
             currentKey.href = '';
-            var img = currentKey.querySelector('img');
-            if (img) img.remove();
+            removeIconEl(currentKey);
             localStorage.removeItem(i);
             localStorage.removeItem(i + 27);
             localStorage.removeItem(i + 54);
@@ -200,8 +347,12 @@
         currentKey.href = newLink;
         if (newLink) localStorage.setItem(i, newLink);
         if (newIcon) {
-            setIcon(currentKey, newIcon);
+            // 图片链接 → 图片图标；普通文字 → 文字图标
+            if (isImageUrl(newIcon)) setIcon(currentKey, newIcon);
+            else setTile(currentKey, newIcon, tileColor(newIcon));
             localStorage.setItem(i + 27, newIcon);
+        } else {
+            ensureTile(currentKey); // 未填图标但有链接 → 自动生成文字图标
         }
         closeMenu();
     }
@@ -225,6 +376,7 @@
     document.addEventListener('keydown', function (e) {
         var menuOpen = myul.style.display === 'block';
         var bgMenuOpen = bgChangeMenu.style.display === 'block';
+        var engineMenuOpen = engineMenu.style.display === 'block';
         var searchFocused = sbtn === document.activeElement;
 
         // 编辑菜单打开时：↑↓ 切换输入框，Esc 关闭，Enter 保存
@@ -239,6 +391,22 @@
         if (bgMenuOpen) {
             if (e.keyCode === 27) bgChangeMenu.style.display = 'none';
             return;
+        }
+        // 搜索引擎菜单打开时：Esc 关闭，忽略其他按键
+        if (engineMenuOpen) {
+            if (e.keyCode === 27) engineMenu.style.display = 'none';
+            return;
+        }
+        // Alt+字母：唤出对应格子的编辑菜单
+        if (e.altKey && !searchFocused) {
+            var ai = keyArray.indexOf(e.keyCode);
+            if (ai > -1) {
+                e.preventDefault();
+                currentKey = keytype[ai];
+                var r = keytype[ai].getBoundingClientRect();
+                openMenu(r.left + window.scrollX, r.bottom + window.scrollY + 4);
+                return;
+            }
         }
         // 快捷链接快捷键：搜索框未聚焦时按字母键打开对应网站（空链接则弹出编辑菜单）
         if (!searchFocused) {
@@ -266,6 +434,10 @@
         // 点击背景菜单外部关闭
         if (!bgChangeMenu.contains(e.target)) {
             bgChangeMenu.style.display = 'none';
+        }
+        // 点击引擎按钮或菜单外部时关闭引擎菜单
+        if (!engineMenu.contains(e.target) && !itema.contains(e.target)) {
+            engineMenu.style.display = 'none';
         }
     });
 
@@ -353,5 +525,6 @@
     applyLinkColor();
 
     /* ================= 初始化 ================= */
+    applyEngine(); // 恢复上次选择的搜索引擎
     sbtn.focus(); // 进入页面自动聚焦搜索框
 })();
