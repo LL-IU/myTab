@@ -1,139 +1,181 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MyTab —— 自制的浏览器起始页：搜索、快捷链接、自定义背景。">
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" href="./style.css">
     <link rel="icon" href="favicon.ico">
     <title>My-Tab</title>
 </head>
 
 <body>
-    <img src="bg.jpg" alt="" class="focus" id="bg">
-    <!-- oncontextmenu="return false" -->
-    <!-- <div class="cover"></div> -->
-    <div class="timeBox"></div>
+    <!-- 自定义背景（默认白色底色，仅在设置了背景时显示） -->
+    <img src="" alt="" id="bg">
+
+    <!-- 时间 -->
+    <div class="timeBox" id="timeBox"></div>
+
     <!-- 搜索框 -->
     <div class="container" id="container">
-        <i class="fa-brands fa-windows item" id="itema"><img src="baidu.png" alt=""></i>
-        <input type="text" id="search-btn" class="search-btn" placeholder="搜索" autocomplete="off">
-        <button class="fa-solid fa-magnifying-glass item" id="itemb"><img src="search.png" alt="">
+        <button type="button" class="engine-btn" id="itema" title="搜索引擎：点击切换">
+            <img src="baidu.png" alt="百度">
         </button>
-
+        <input type="text" id="search-btn" class="search-btn" placeholder="搜索" autocomplete="off" aria-label="搜索">
+        <button type="button" class="search-go" id="itemb" aria-label="搜索">
+            <img src="search.png" alt="">
+        </button>
     </div>
+
     <!-- 联想词 -->
     <div id="relebox">
         <ul id="relevance"></ul>
     </div>
-    <!-- 右键菜单 -->
+
+    <!-- 右键编辑菜单 -->
     <ul class="myul" id="myul">
-        <li class="myli">网址<input type="text" id="linkInput" autocomplete="off"></li>
-        <li class="myli">图标<input type="text" id="iconInput" autocomplete="off">
-            <input type="file" id="iconSelect">
-            <div id="iconButton"></div>
+        <li class="myli"><label for="nameInput">名称</label>
+            <input type="text" id="nameInput" autocomplete="off" placeholder="网站名称（可选）"></li>
+        <li class="myli"><label for="linkInput">网址</label>
+            <input type="text" id="linkInput" autocomplete="off" placeholder="https:// 或输入 clear 清除"></li>
+        <li class="myli"><label for="iconInput">图标</label>
+            <input type="text" id="iconInput" autocomplete="off" placeholder="图片链接 或 文字"></li>
+        <li class="myli myli-actions">
+            <button type="button" class="action-btn" id="clearUrlBtn">清除网址</button>
+            <button type="button" class="action-btn" id="clearIconBtn">清除图标</button>
+            <button type="button" class="action-btn" id="pickIconBtn" title="选择本地图片做图标">本地图片</button>
+            <input type="file" id="iconSelect" accept="image/*" aria-hidden="true" tabindex="-1">
         </li>
     </ul>
-    <!-- 右键选择背景 -->
+
+    <!-- 右键空白处菜单 -->
     <div id="bgChangeMenu">
-        <input type="file" id="bgSelect">
-        <div id="bgSelectButton" class="bgOption">
-            <p>选择背景</p>
+        <div id="bgSelectButton" class="bgOption" role="button">选择背景</div>
+        <input type="file" id="bgSelect" accept="image/*" aria-hidden="true" tabindex="-1">
+        <div id="bgClear" class="bgOption" role="button">清除背景</div>
+        <div id="hideLink" class="bgOption" role="button">显隐链接</div>
+        <div id="timeColor" class="bgOption" role="button">时间颜色</div>
+        <div id="linkColor" class="bgOption" role="button">链接颜色</div>
+        <div id="bgHelpToggle" class="bgOption" role="button">使用方法</div>
+        <div id="bgHelpBox" hidden>
+            <p><b>基本</b>：点击字母格子进入对应网站；点击空格子即可编辑。</p>
+            <p><b>编辑</b>：右键任意格子，填写名称 / 网址 / 图标，Enter 保存，Esc 取消；底部三个按钮可单独清除网址、清除图标、选择本地图片。</p>
+            <p><b>搜索</b>：进入页面自动聚焦，Enter 搜索；点击左侧按钮切换搜索引擎，可自定义。</p>
+            <p><b>快捷键</b>：搜索框未聚焦时，按字母键直达对应网站；Esc 聚焦 / 取消聚焦搜索框。</p>
+            <p><b>图标</b>：支持图片链接、文字、本地图片；无图标时自动获取网站图标，失败显示「无」。</p>
+            <p><b>背景</b>：右键空白处选择本地图片作为背景；可清除、显隐链接、调整文字颜色。</p>
+            <p><b>数据</b>：全部保存在浏览器 localStorage，清除浏览器数据会丢失自定义内容。</p>
         </div>
-        <div id="bgClear" class="bgOption">清除背景</div>
-        <div id="hideLink" class="bgOption">显隐链接</div>
-        <div id="timeColor" class="colorSet">时间</div>
-        <div id="linkColor" class="colorSet">链接</div>
     </div>
+
     <!-- 搜索引擎菜单 -->
     <div id="engineMenu"></div>
-    <!-- 快捷链接 -->
-    <div id="quickLink"><!-- 左键单击判断有没有url，没有创建，有跳转 ,先不要img，用js添加-->
-        <a class="keytype" id="keyQ" target="_blank" href="">
+
+    <!-- 自定义搜索引擎弹窗 -->
+    <div id="engineForm" hidden>
+        <h3>自定义搜索引擎</h3>
+        <label>名称<input type="text" id="engineNameInput" placeholder="例如：知乎"></label>
+        <label>搜索链接（用 {q} 代替关键词）<input type="text" id="engineUrlInput"
+                placeholder="https://www.zhihu.com/search?q={q}"></label>
+        <div class="engineForm-actions">
+            <button type="button" id="engineSave">保存</button>
+            <button type="button" id="engineCancel">取消</button>
+        </div>
+    </div>
+
+    <!-- 悬浮提示 -->
+    <div id="tooltip" role="tooltip"></div>
+
+    <!-- 快捷链接（字母键布局） -->
+    <div id="quickLink">
+        <a class="keytype" id="keyQ" target="_blank" rel="noopener" href="">
             <p>Q</p>
         </a>
-        <a class="keytype" id="keyW" target="_blank" href="">
+        <a class="keytype" id="keyW" target="_blank" rel="noopener" href="">
             <p>W</p>
         </a>
-        <a class="keytype" id="keyE" target="_blank" href="">
+        <a class="keytype" id="keyE" target="_blank" rel="noopener" href="">
             <p>E</p>
         </a>
-        <a class="keytype" id="keyR" target="_blank" href="">
+        <a class="keytype" id="keyR" target="_blank" rel="noopener" href="">
             <p>R</p>
         </a>
-        <a class="keytype" id="keyT" target="_blank" href="">
+        <a class="keytype" id="keyT" target="_blank" rel="noopener" href="">
             <p>T</p>
         </a>
-        <a class="keytype" id="keyY" target="_blank" href="">
+        <a class="keytype" id="keyY" target="_blank" rel="noopener" href="">
             <p>Y</p>
         </a>
-        <a class="keytype" id="keyU" target="_blank" href="">
+        <a class="keytype" id="keyU" target="_blank" rel="noopener" href="">
             <p>U</p>
         </a>
-        <a class="keytype" id="keyI" target="_blank" href="">
+        <a class="keytype" id="keyI" target="_blank" rel="noopener" href="">
             <p>I</p>
         </a>
-        <a class="keytype" id="keyO" target="_blank" href="">
+        <a class="keytype" id="keyO" target="_blank" rel="noopener" href="">
             <p>O</p>
         </a>
-        <a class="keytype" id="keyP" target="_blank" href="">
+        <a class="keytype" id="keyP" target="_blank" rel="noopener" href="">
             <p>P</p>
         </a>
         <div class="blanka"></div>
-        <a class="keytype" id="keyA" target="_blank" href="">
+        <a class="keytype" id="keyA" target="_blank" rel="noopener" href="">
             <p>A</p>
         </a>
-        <a class="keytype" id="keyS" target="_blank" href="">
+        <a class="keytype" id="keyS" target="_blank" rel="noopener" href="">
             <p>S</p>
         </a>
-        <a class="keytype" id="keyD" target="_blank" href="">
+        <a class="keytype" id="keyD" target="_blank" rel="noopener" href="">
             <p>D</p>
         </a>
-        <a class="keytype" id="keyF" target="_blank" href="">
+        <a class="keytype" id="keyF" target="_blank" rel="noopener" href="">
             <p>F</p>
         </a>
-        <a class="keytype" id="keyG" target="_blank" href="">
+        <a class="keytype" id="keyG" target="_blank" rel="noopener" href="">
             <p>G</p>
         </a>
-        <a class="keytype" id="keyH" target="_blank" href="">
+        <a class="keytype" id="keyH" target="_blank" rel="noopener" href="">
             <p>H</p>
         </a>
-        <a class="keytype" id="keyJ" target="_blank" href="">
+        <a class="keytype" id="keyJ" target="_blank" rel="noopener" href="">
             <p>J</p>
         </a>
-        <a class="keytype" id="keyK" target="_blank" href="">
+        <a class="keytype" id="keyK" target="_blank" rel="noopener" href="">
             <p>K</p>
         </a>
-        <a class="keytype" id="keyL" target="_blank" href="">
+        <a class="keytype" id="keyL" target="_blank" rel="noopener" href="">
             <p>L</p>
         </a>
         <div class="blankb"></div>
-        <a class="keytype" id="keyZ" target="_blank" href="">
+        <a class="keytype" id="keyZ" target="_blank" rel="noopener" href="">
             <p>Z</p>
         </a>
-        <a class="keytype" id="keyX" target="_blank" href="">
+        <a class="keytype" id="keyX" target="_blank" rel="noopener" href="">
             <p>X</p>
         </a>
-        <a class="keytype" id="keyC" target="_blank" href="">
+        <a class="keytype" id="keyC" target="_blank" rel="noopener" href="">
             <p>C</p>
         </a>
-        <a class="keytype" id="keyV" target="_blank" href="">
+        <a class="keytype" id="keyV" target="_blank" rel="noopener" href="">
             <p>V</p>
         </a>
-        <a class="keytype" id="keyB" target="_blank" href="https://www.bilibili.com/">
+        <a class="keytype" id="keyB" target="_blank" rel="noopener" href="https://www.bilibili.com/">
             <p>B</p>
-            <img src="https://www.bilibili.com/favicon.ico">
+            <img src="https://www.bilibili.com/favicon.ico" alt="">
         </a>
-        <a class="keytype" id="keyN" target="_blank" href="">
+        <a class="keytype" id="keyN" target="_blank" rel="noopener" href="">
             <p>N</p>
         </a>
-        <a class="keytype" id="keyM" target="_blank" href="">
+        <a class="keytype" id="keyM" target="_blank" rel="noopener" href="">
             <p>M</p>
         </a>
     </div>
-    <script src="mytab.js">
-    </script>
+
+    <script src="mytab.js"></script>
 </body>
 
 </html>

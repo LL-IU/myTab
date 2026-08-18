@@ -1,58 +1,88 @@
 /**
- * MyTab v2.0 优化版
+ * MyTab v3.1 —— 现代化重构版
  *
- * 主要改动：
- * 1. 统一使用 addEventListener 绑定事件，修复 window.onkeydown / window.onclick
- *    被反复覆盖导致的相互冲突
- * 2. 修复百度联想词链接：正确域名 + URL 编码（支持空格）+ textContent 防注入 + 防抖
- * 3. 修复清除判断：输入 "clear" 才清除（原代码只判断 "c"），并同步重置 DOM
- * 4. 修复图标状态过期问题：添加/替换本地图标无需刷新页面
- * 5. 修复点击搜索按钮依赖失焦时序的问题，搜索不再清空已输入内容
- * 6. 空链接点击时弹出编辑菜单（对应 index.html 中注释的设计意图）
- * 7. 输入网址自动补全协议（https://），避免拼到当前页面地址后面
- * 8. localStorage 键位保持不变，已有自定义数据完全兼容
- * 9. v3.0 新增：搜索引擎切换（含自定义引擎）、Alt+字母唤出编辑菜单、文字图标
+ * 相比 v3.0 的变化：
+ * 1. 代码现代化：ES6+ 语法（const/let、箭头函数、模板字符串）、event.key、语义化类名、CSS 变量
+ * 2. 新增"名称"栏：编辑菜单可填网站名称；悬浮提示显示名称与网址
+ * 3. 编辑菜单重构：底部"清除网址 / 清除图标 / 本地图片"三个按钮；右键已配置链接自动预填
+ * 4. 移除 Alt+字母唤出菜单（避免与其他快捷键冲突）
+ * 5. 默认白色背景；清除背景回到白底；时间/链接文字默认黑色
+ * 6. 右键空白处菜单新增"使用方法"说明
+ * 7. 网站图标获取失败时显示「无」
+ * 8. 右键菜单 UI 优化（毛玻璃、圆角、阴影、hover 反馈）
+ * 9. 自定义搜索引擎改为弹窗表单（替换 prompt）
+ * 10. localStorage 键位保持不变，原有自定义数据完全兼容
  */
 (function () {
     'use strict';
 
     /* ================= 元素引用 ================= */
-    var sbtn = document.getElementById('search-btn');
-    var timeBox = document.querySelector('.timeBox');
-    var container = document.getElementById('container');
-    var itema = document.getElementById('itema');
-    var itemb = document.getElementById('itemb');
-    var bg = document.getElementById('bg');
-    var ql = document.getElementById('quickLink');
-    var keytype = ql.getElementsByClassName('keytype'); // 与 keyArray 顺序一致
-    var myul = document.getElementById('myul');
-    var linkInput = document.getElementById('linkInput');
-    var iconInput = document.getElementById('iconInput');
-    var iconSelect = document.getElementById('iconSelect');
-    var oUl = document.getElementById('relevance');
-    var bgChangeMenu = document.getElementById('bgChangeMenu');
-    var bgSelect = document.getElementById('bgSelect');
-    var bgClearBtn = document.getElementById('bgClear');
-    var hideLinkBtn = document.getElementById('hideLink');
-    var timeColorBtn = document.getElementById('timeColor');
-    var linkColorBtn = document.getElementById('linkColor');
+    const $ = (id) => document.getElementById(id);
 
-    // 按键盘排布的按键代码：Q W E R T Y U I O P / A S D F G H J K L / Z X C V B N M
-    var keyArray = [81, 87, 69, 82, 84, 89, 85, 73, 79, 80, 65, 83, 68, 70, 71, 72, 74, 75, 76, 90, 88, 67, 86, 66, 78, 77];
+    const sbtn = $('search-btn');
+    const timeBox = $('timeBox');
+    const container = $('container');
+    const engineBtn = $('itema');
+    const searchGo = $('itemb');
+    const bg = $('bg');
+    const ql = $('quickLink');
+    const keytype = ql.getElementsByClassName('keytype'); // 与 KEY_CHARS 顺序一致
+    const myul = $('myul');
+    const nameInput = $('nameInput');
+    const linkInput = $('linkInput');
+    const iconInput = $('iconInput');
+    const iconSelect = $('iconSelect');
+    const clearUrlBtn = $('clearUrlBtn');
+    const clearIconBtn = $('clearIconBtn');
+    const pickIconBtn = $('pickIconBtn');
+    const oUl = $('relevance');
+    const bgChangeMenu = $('bgChangeMenu');
+    const bgSelectButton = $('bgSelectButton');
+    const bgSelect = $('bgSelect');
+    const bgClearBtn = $('bgClear');
+    const hideLinkBtn = $('hideLink');
+    const timeColorBtn = $('timeColor');
+    const linkColorBtn = $('linkColor');
+    const bgHelpToggle = $('bgHelpToggle');
+    const bgHelpBox = $('bgHelpBox');
+    const engineMenu = $('engineMenu');
+    const engineForm = $('engineForm');
+    const engineNameInput = $('engineNameInput');
+    const engineUrlInput = $('engineUrlInput');
+    const engineSave = $('engineSave');
+    const engineCancel = $('engineCancel');
+    const tooltip = $('tooltip');
 
-    var currentKey = null; // 当前正在编辑的快捷链接格子
+    // 键盘排布（小写字母，与 HTML 中 keytype 顺序一致）：q w e r t y u i o p / a s d f g h j k l / z x c v b n m
+    const KEY_CHARS = 'qwertyuiopasdfghjklzxcvbnm';
+    const EDIT_INPUTS = [nameInput, linkInput, iconInput]; // 编辑菜单三个输入框
+
+    let currentKey = null; // 当前正在编辑的快捷链接格子
+
+    /* ================= localStorage 键位（与旧版本完全兼容） =================
+     * 0-25    网址        27-52   图标        54-79   本地图片图标（DataURL）
+     * -1 背景  -2 显隐链接  -3 时间颜色  -4 链接颜色  -5 自定义引擎  -6 当前引擎
+     * v3.1 新增：81-106 名称    108-133 本地图标文件名
+     */
+    const hrefKey = (i) => String(i);
+    const iconKey = (i) => String(i + 27);
+    const localIconKey = (i) => String(i + 54);
+    const nameKey = (i) => String(i + 81);
+    const localIconNameKey = (i) => String(i + 108);
 
     /* ================= 时间 ================= */
-    function padZero(n) { return n > 9 ? n : '0' + n; }
+    const padZero = (n) => (n > 9 ? n : '0' + n);
 
-    setInterval(function () {
-        var d = new Date();
-        timeBox.innerText = padZero(d.getHours()) + ':' + padZero(d.getMinutes());
-    }, 1000);
+    function renderTime() {
+        const d = new Date();
+        timeBox.textContent = padZero(d.getHours()) + ':' + padZero(d.getMinutes());
+    }
+    renderTime(); // 立即渲染，避免首秒空白
+    setInterval(renderTime, 1000);
 
     /* ================= 搜索 ================= */
     // 搜索引擎列表（{q} 为关键词占位符）
-    var ENGINE_LIST = [
+    const ENGINE_LIST = [
         { name: '百度', url: 'https://www.baidu.com/s?ie=utf-8&word={q}', icon: 'baidu.png' },
         { name: '必应', url: 'https://www.bing.com/search?q={q}' },
         { name: '谷歌', url: 'https://www.google.com/search?q={q}' },
@@ -60,191 +90,222 @@
     ];
 
     function getEngines() {
-        var list = ENGINE_LIST.slice();
-        var custom = localStorage.getItem(-5);
+        const list = ENGINE_LIST.slice();
+        const custom = localStorage.getItem(-5);
         if (custom) {
             try { list.push(JSON.parse(custom)); } catch (e) { /* 忽略损坏的自定义引擎 */ }
         }
         return list;
     }
 
-    function getCurrentEngine() {
-        var idx = parseInt(localStorage.getItem(-6), 10);
-        var list = getEngines();
-        return list[isNaN(idx) ? 0 : idx] || list[0];
+    function getEngineIndex() {
+        const idx = parseInt(localStorage.getItem(-6), 10);
+        return isNaN(idx) ? 0 : idx;
     }
 
-    function isBaiduEngine() {
-        return getCurrentEngine().url.indexOf('baidu.com') > -1;
+    function getCurrentEngine() {
+        const list = getEngines();
+        return list[getEngineIndex()] || list[0];
     }
+
+    const isBaiduEngine = () => getCurrentEngine().url.indexOf('baidu.com') > -1;
 
     function buildSearchUrl(keyword) {
         return getCurrentEngine().url.replace('{q}', encodeURIComponent(keyword));
     }
 
     function searchMy() {
-        var keyword = sbtn.value.trim();
+        const keyword = sbtn.value.trim();
         if (!keyword) { sbtn.focus(); return; } // 空内容不弹空白页
-        window.open(buildSearchUrl(keyword));
+        window.open(buildSearchUrl(keyword), '_blank');
     }
 
     /* ================= 搜索引擎切换 ================= */
-    var engineMenu = document.getElementById('engineMenu');
-
     function renderEngineMenu() {
-        var list = getEngines();
-        var idx = parseInt(localStorage.getItem(-6), 10) || 0;
-        engineMenu.innerHTML = '';
-        list.forEach(function (e, i) {
-            var div = document.createElement('div');
+        const list = getEngines();
+        const idx = getEngineIndex();
+        engineMenu.textContent = '';
+        list.forEach((e, i) => {
+            const div = document.createElement('div');
             div.className = 'engineOption' + (i === idx ? ' engine-active' : '');
             div.textContent = e.name;
-            div.addEventListener('click', function () {
+            div.addEventListener('click', () => {
                 localStorage.setItem(-6, String(i));
                 applyEngine();
                 engineMenu.style.display = 'none';
             });
             engineMenu.appendChild(div);
         });
-        var custom = document.createElement('div');
+        const custom = document.createElement('div');
         custom.className = 'engineOption engine-custom';
         custom.textContent = '自定义…';
-        custom.addEventListener('click', function () {
-            var name = prompt('搜索引擎名称：', '我的引擎');
-            if (!name) return;
-            var url = prompt('搜索链接（用 {q} 代替关键词，例如 https://example.com/search?q={q}）：', 'https://www.baidu.com/s?ie=utf-8&word={q}');
-            if (!url) return;
-            if (url.indexOf('{q}') === -1) { alert('链接中必须包含 {q} 占位符'); return; }
-            localStorage.setItem(-5, JSON.stringify({ name: name, url: url }));
-            localStorage.setItem(-6, String(getEngines().length - 1));
-            applyEngine();
-            renderEngineMenu();
-            engineMenu.style.display = 'none';
+        custom.addEventListener('click', (e) => {
+            e.stopPropagation(); // 阻止文档级点击关闭弹窗
+            openEngineForm();
         });
         engineMenu.appendChild(custom);
     }
 
     // 更新搜索框左侧按钮：显示当前引擎的图标或首字母
     function applyEngine() {
-        var e = getCurrentEngine();
-        itema.innerHTML = '';
+        const e = getCurrentEngine();
+        engineBtn.textContent = '';
         if (e.icon) {
-            var img = document.createElement('img');
+            const img = document.createElement('img');
             img.src = e.icon;
             img.alt = e.name;
-            itema.appendChild(img);
+            engineBtn.appendChild(img);
         } else {
-            var span = document.createElement('span');
+            const span = document.createElement('span');
             span.className = 'engine-letter';
             span.textContent = e.name.charAt(0);
-            itema.appendChild(span);
+            engineBtn.appendChild(span);
         }
-        itema.title = '搜索引擎：' + e.name + '（点击切换）';
+        engineBtn.title = '搜索引擎：' + e.name + '（点击切换）';
         hideSuggest();
     }
 
-    itema.addEventListener('click', function () {
-        var rect = itema.getBoundingClientRect();
+    engineBtn.addEventListener('click', () => {
+        if (engineMenu.style.display === 'block') { closeAllMenus(); return; }
+        closeAllMenus(); // 打开引擎菜单前关闭其他浮层
+        const rect = engineBtn.getBoundingClientRect();
         renderEngineMenu();
         engineMenu.style.display = 'block';
-        engineMenu.style.left = (rect.left + window.scrollX) + 'px';
-        engineMenu.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+        engineMenu.style.left = rect.left + 'px';
+        engineMenu.style.top = (rect.bottom + 4) + 'px';
     });
 
-    // 聚焦 / 失焦时的样式切换（不再清除已输入内容，点击搜索按钮不再依赖失焦时序）
-    function add() {
+    // 键盘可达性：Enter / 空格 触发引擎按钮
+    engineBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            engineBtn.click();
+        }
+    });
+
+    /* ================= 自定义搜索引擎弹窗 ================= */
+    function openEngineForm() {
+        closeAllMenus(); // 打开弹窗前关闭其他浮层
+        engineNameInput.value = '';
+        engineUrlInput.value = '';
+        engineForm.hidden = false;
+        engineNameInput.focus();
+    }
+
+    function closeEngineForm() { engineForm.hidden = true; }
+
+    function saveCustomEngine() {
+        const name = engineNameInput.value.trim();
+        const url = engineUrlInput.value.trim();
+        if (!name || !url) { alert('名称和链接都不能为空'); return; }
+        if (url.indexOf('{q}') === -1) { alert('链接中必须包含 {q} 占位符'); return; }
+        localStorage.setItem(-5, JSON.stringify({ name: name, url: url }));
+        localStorage.setItem(-6, String(getEngines().length - 1));
+        applyEngine();
+        closeEngineForm();
+    }
+
+    engineSave.addEventListener('click', saveCustomEngine);
+    engineCancel.addEventListener('click', closeEngineForm);
+
+    /* ================= 聚焦 / 失焦样式 ================= */
+    function addFocus() {
         sbtn.classList.add('sbtn-focus');
-        itema.classList.add('item-act');
-        itemb.classList.add('item-act');
+        engineBtn.classList.add('item-act');
+        searchGo.classList.add('item-act');
         bg.classList.add('bg-act');
         container.classList.add('container-focus');
         if (!sbtn.value) hideSuggest();
     }
 
-    function remove() {
+    function removeFocus() {
         sbtn.classList.remove('sbtn-focus');
-        itema.classList.remove('item-act');
-        itemb.classList.remove('item-act');
+        engineBtn.classList.remove('item-act');
+        searchGo.classList.remove('item-act');
         bg.classList.remove('bg-act');
         container.classList.remove('container-focus');
         hideSuggest();
     }
 
-    sbtn.addEventListener('focus', add);
-    sbtn.addEventListener('blur', remove);
-    itemb.addEventListener('click', searchMy);
+    sbtn.addEventListener('focus', addFocus);
+    sbtn.addEventListener('blur', removeFocus);
+    searchGo.addEventListener('click', searchMy);
 
-    /* ================= 百度联想词（JSONP） ================= */
-    var suggestTimer = null;
-    var suggestScript = null;
+    /* ================= 百度联想词（JSONP + 防抖） ================= */
+    let suggestTimer = null;
+    let suggestScript = null;
 
-    sbtn.addEventListener('input', function () {
+    sbtn.addEventListener('input', () => {
         clearTimeout(suggestTimer);
-        var value = sbtn.value.trim();
+        const value = sbtn.value.trim();
         if (!value || !isBaiduEngine()) { hideSuggest(); return; } // 联想词仅百度可用
-        suggestTimer = setTimeout(function () { fetchSuggest(value); }, 150); // 防抖
+        suggestTimer = setTimeout(() => fetchSuggest(value), 150);
     });
 
     function fetchSuggest(value) {
-        if (suggestScript) suggestScript.remove(); // 清理上一个 script，避免堆积
+        if (suggestScript) { suggestScript.remove(); suggestScript = null; } // 取消上一次未完成的请求
         suggestScript = document.createElement('script');
         suggestScript.src = 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=' +
-            encodeURIComponent(value) + '&cb=doJosn';
+            encodeURIComponent(value) + '&cb=mytabSuggest';
+        suggestScript.onerror = () => {
+            if (suggestScript) { suggestScript.remove(); suggestScript = null; }
+            hideSuggest();
+        };
         document.body.appendChild(suggestScript);
     }
 
-    // JSONP 回调（必须是全局函数，供百度返回的脚本调用）
-    window.doJosn = function (data) {
+    // JSONP 回调（必须挂在全局，供百度返回的脚本调用）
+    window.mytabSuggest = function (data) {
         if (!isBaiduEngine()) { hideSuggest(); return; } // 切换引擎后忽略旧联想词
-        var list = data.s || [];
-        oUl.innerHTML = '';
-        if (list.length) {
-            list.forEach(function (ele) {
-                var li = document.createElement('li');
-                var a = document.createElement('a');
-                a.href = 'https://www.baidu.com/s?ie=utf-8&word=' + encodeURIComponent(ele);
-                a.target = '_blank';
-                a.textContent = ele; // textContent 防止注入，且空格可正常编码
-                li.appendChild(a);
-                oUl.appendChild(li);
-            });
-            oUl.style.display = 'block';
-        } else {
-            hideSuggest();
-        }
+        const list = data.s || [];
+        oUl.textContent = '';
+        if (!list.length) { hideSuggest(); return; }
+        list.forEach((ele) => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = 'https://www.baidu.com/s?ie=utf-8&word=' + encodeURIComponent(ele);
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.textContent = ele; // textContent 防注入，空格可正常编码
+            li.appendChild(a);
+            oUl.appendChild(li);
+        });
+        oUl.style.display = 'block';
     };
 
-    // 点击联想词时阻止输入框失焦（否则列表被隐藏后点击事件丢失）
-    oUl.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    // 点击联想词时阻止输入框失焦（否则列表隐藏后点击事件丢失）
+    oUl.addEventListener('mousedown', (e) => e.preventDefault());
 
     function hideSuggest() { oUl.style.display = 'none'; }
 
     /* ================= 快捷链接：恢复 localStorage 数据 ================= */
-    for (var i = 0; i < keytype.length; i++) {
-        var kt = keytype[i];
-        var savedHref = localStorage.getItem(i);
-        var savedIcon = localStorage.getItem(i + 27);
-        var savedLocal = localStorage.getItem(i + 54);
+    for (let i = 0; i < keytype.length; i++) {
+        const kt = keytype[i];
+        const savedHref = localStorage.getItem(hrefKey(i));
+        const savedIcon = localStorage.getItem(iconKey(i));
+        const savedLocal = localStorage.getItem(localIconKey(i));
         if (savedHref) kt.href = savedHref;
         if (savedLocal) setIcon(kt, savedLocal);            // 本地图片优先
         else if (savedIcon) {                               // 图标可能是图片链接或文字
             if (isImageUrl(savedIcon)) setIcon(kt, savedIcon);
             else setTile(kt, savedIcon, tileColor(savedIcon));
         } else {
-            ensureTile(kt);                                 // 有链接无图标 → 自动文字图标
+            ensureTile(kt);                                 // 有链接无图标 → 自动获取 / 文字图标
         }
     }
 
+    function getKeyIndex(kt) { return Array.prototype.indexOf.call(keytype, kt); }
+
     function removeIconEl(kt) {
-        var img = kt.querySelector('img');
+        const img = kt.querySelector('img');
         if (img) img.remove();
-        var tile = kt.querySelector('.keytile');
+        const tile = kt.querySelector('.keytile');
         if (tile) tile.remove();
     }
 
     function setIcon(kt, src) {
         removeIconEl(kt);
-        var img = document.createElement('img');
+        const img = document.createElement('img');
         kt.appendChild(img);
         img.src = src;
     }
@@ -257,173 +318,271 @@
 
     // 根据字符串生成稳定的背景色
     function tileColor(str) {
-        var h = 0;
-        for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 360;
+        let h = 0;
+        for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 360;
         return 'hsl(' + h + ', 55%, 42%)';
     }
 
-    // 文字图标（给没有图片图标的网站使用）
+    // 文字图标（替代图片图标的网站）
     function setTile(kt, text, color) {
         removeIconEl(kt);
-        var tile = document.createElement('span');
+        const tile = document.createElement('span');
         tile.className = 'keytile';
         tile.textContent = text.slice(0, 2);
         tile.style.backgroundColor = color || tileColor(text);
         kt.appendChild(tile);
     }
 
-    // 有链接但没有图标时：先自动尝试获取网站 favicon，失败则用域名首字母生成文字图标
+    // 有链接但没有图标时：先自动尝试获取网站 favicon，失败则显示「无」
     function ensureTile(kt) {
         if (kt.querySelector('img') || kt.querySelector('.keytile')) return;
-        var href = kt.getAttribute('href');
+        const href = kt.getAttribute('href');
         if (!href) return;
-        var host = href;
+        let host = href;
         try { host = new URL(href).hostname; } catch (e) { host = href.replace(/^https?:\/\//i, '').split('/')[0]; }
-        var fav = document.createElement('img');
+        const fav = document.createElement('img');
         fav.src = 'https://' + host + '/favicon.ico';
-        fav.onerror = function () {
-            fav.remove(); // favicon 获取失败 → 退回文字图标
-            setTile(kt, host.charAt(0).toUpperCase() || '?', tileColor(host));
+        fav.onerror = () => {
+            fav.remove(); // favicon 获取失败 → 显示「无」
+            setTile(kt, '无', tileColor(host));
         };
         kt.appendChild(fav);
     }
 
-    function getKeyIndex(kt) { return Array.prototype.indexOf.call(keytype, kt); }
-
     /* ================= 右键编辑菜单 ================= */
-    function openMenu(x, y) {
+    function openMenu(kt, x, y) {
+        closeAllMenus(); // 打开编辑菜单前关闭其他浮层
+        currentKey = kt;
+        prefillMenu(kt);
         myul.style.display = 'block';
         myul.style.left = x + 'px';
         myul.style.top = y + 'px';
-        linkInput.focus();
+        nameInput.focus();
+    }
+
+    // 右键已配置的链接时预填：网址 / 名称 / 图标（在线链接、文字或本地图片文件名）
+    function prefillMenu(kt) {
+        const i = getKeyIndex(kt);
+        linkInput.value = kt.getAttribute('href') || '';
+        const localIcon = localStorage.getItem(localIconKey(i));
+        const localName = localStorage.getItem(localIconNameKey(i));
+        const icon = localStorage.getItem(iconKey(i));
+        iconInput.value = localIcon ? (localName || '本地图片') : (icon || '');
+        nameInput.value = localStorage.getItem(nameKey(i)) || '';
     }
 
     function closeMenu() {
         myul.style.display = 'none';
+        currentKey = null;
+        nameInput.value = '';
         linkInput.value = '';
         iconInput.value = '';
     }
 
-    // 右键快捷链接：弹出编辑菜单（事件委托，一次绑定）
-    ql.addEventListener('contextmenu', function (e) {
-        var kt = e.target.closest('.keytype');
+    // 关闭所有浮层（打开新菜单前调用，避免多个菜单同时显示造成冲突）
+    function closeAllMenus() {
+        closeMenu();                                // 编辑菜单
+        bgChangeMenu.style.display = 'none';        // 背景菜单
+        engineMenu.style.display = 'none';          // 搜索引擎菜单
+        closeEngineForm();                          // 自定义引擎弹窗
+    }
+
+    // 右键快捷链接：弹出编辑菜单（事件委托）
+    ql.addEventListener('contextmenu', (e) => {
+        const kt = e.target.closest('.keytype');
         if (!kt) return;
         e.preventDefault();
-        currentKey = kt;
-        openMenu(e.pageX, e.pageY);
+        e.stopPropagation(); // 阻止冒泡到文档级的背景菜单
+        openMenu(kt, e.pageX, e.pageY);
     });
 
-    // 左键空链接：打开编辑菜单，而不是跳转到当前页面
-    ql.addEventListener('click', function (e) {
-        var kt = e.target.closest('.keytype');
+    // 左键空链接：打开编辑菜单，而不是跳转
+    ql.addEventListener('click', (e) => {
+        const kt = e.target.closest('.keytype');
         if (!kt || kt.getAttribute('href')) return;
         e.preventDefault();
-        currentKey = kt;
-        var rect = kt.getBoundingClientRect();
-        openMenu(rect.left + window.scrollX, rect.bottom + window.scrollY + 4);
+        const rect = kt.getBoundingClientRect();
+        openMenu(kt, rect.left + window.scrollX, rect.bottom + window.scrollY + 4);
     });
 
     // 保存链接（Enter 触发）
     function saveLink() {
         if (!currentKey) return;
-        var i = getKeyIndex(currentKey);
-        var newLink = linkInput.value.trim();
-        var newIcon = iconInput.value.trim();
+        const i = getKeyIndex(currentKey);
+        const newLink = linkInput.value.trim();
+        const newName = nameInput.value.trim();
+        const newIcon = iconInput.value.trim();
 
-        // 输入 clear 清除该格子的记录（并重置 DOM，不再残留 href="clear"）
+        // 兼容旧行为：网址栏输入 clear 清除该格子
         if (newLink.toLowerCase() === 'clear') {
-            currentKey.href = '';
-            removeIconEl(currentKey);
-            localStorage.removeItem(i);
-            localStorage.removeItem(i + 27);
-            localStorage.removeItem(i + 54);
+            clearSlot(currentKey);
             closeMenu();
             return;
         }
 
-        // 自动补全协议，避免把输入内容拼到当前页面地址后面
-        if (newLink && !/^https?:\/\//i.test(newLink)) newLink = 'https://' + newLink;
+        // 自动补全协议，避免拼到当前页面地址后面
+        // 存储用户输入的原始链接（不含浏览器规范化的末尾斜杠）
+        const finalLink = newLink && !/^https?:\/\//i.test(newLink) ? 'https://' + newLink : newLink;
+        currentKey.href = finalLink;
 
-        currentKey.href = newLink;
-        if (newLink) localStorage.setItem(i, newLink);
-        if (newIcon) {
-            // 图片链接 → 图片图标；普通文字 → 文字图标
+        if (finalLink) localStorage.setItem(hrefKey(i), finalLink);
+        else localStorage.removeItem(hrefKey(i));
+
+        if (newName) localStorage.setItem(nameKey(i), newName);
+        else localStorage.removeItem(nameKey(i));
+
+        const hasLocalIcon = !!localStorage.getItem(localIconKey(i));
+        // 图标栏没被改动（显示的是本地图片的文件名）时保留本地图标
+        const iconUnchanged = hasLocalIcon &&
+            (newIcon === localStorage.getItem(localIconNameKey(i)) || newIcon === '本地图片');
+
+        if (newIcon && !iconUnchanged) {
+            // 图片链接 → 图片图标；普通文字 → 文字图标（同时清掉旧的本地图标）
             if (isImageUrl(newIcon)) setIcon(currentKey, newIcon);
             else setTile(currentKey, newIcon, tileColor(newIcon));
-            localStorage.setItem(i + 27, newIcon);
-        } else {
-            ensureTile(currentKey); // 未填图标但有链接 → 自动生成文字图标
+            localStorage.setItem(iconKey(i), newIcon);
+            localStorage.removeItem(localIconKey(i));
+            localStorage.removeItem(localIconNameKey(i));
+        } else if (!newIcon && !hasLocalIcon) {
+            ensureTile(currentKey); // 未填图标但有链接 → 自动生成
         }
         closeMenu();
     }
 
+    // 清空某个格子（网址 / 名称 / 图标 / 本地图标）
+    function clearSlot(kt) {
+        const i = getKeyIndex(kt);
+        kt.href = '';
+        removeIconEl(kt);
+        localStorage.removeItem(hrefKey(i));
+        localStorage.removeItem(iconKey(i));
+        localStorage.removeItem(localIconKey(i));
+        localStorage.removeItem(localIconNameKey(i));
+        localStorage.removeItem(nameKey(i));
+    }
+
+    // 清除网址（保留图标）
+    clearUrlBtn.addEventListener('click', () => {
+        if (!currentKey) return;
+        const i = getKeyIndex(currentKey);
+        currentKey.href = '';
+        localStorage.removeItem(hrefKey(i));
+        localStorage.removeItem(nameKey(i));
+        linkInput.value = '';
+        nameInput.value = '';
+    });
+
+    // 清除图标（保留网址）
+    clearIconBtn.addEventListener('click', () => {
+        if (!currentKey) return;
+        const i = getKeyIndex(currentKey);
+        removeIconEl(currentKey);
+        localStorage.removeItem(iconKey(i));
+        localStorage.removeItem(localIconKey(i));
+        localStorage.removeItem(localIconNameKey(i));
+        iconInput.value = '';
+    });
+
     // 选择本地图片作为图标（FileReader 转 DataURL 存入 localStorage，可随时替换）
+    pickIconBtn.addEventListener('click', () => iconSelect.click());
     iconSelect.addEventListener('change', function () {
-        var kt = currentKey;
-        var file = this.files[0];
+        const kt = currentKey;
+        const file = this.files[0];
         if (!kt || !file) return;
         if (!/image\/\w+/.test(file.type)) { alert('文件必须为图片！'); return; }
-        var reader = new FileReader();
-        reader.onload = function (e) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
             setIcon(kt, e.target.result);
-            localStorage.setItem(getKeyIndex(kt) + 54, e.target.result);
+            const i = getKeyIndex(kt);
+            localStorage.setItem(localIconKey(i), e.target.result);
+            localStorage.setItem(localIconNameKey(i), file.name);
+            iconInput.value = file.name;
         };
         reader.readAsDataURL(file);
         this.value = ''; // 允许再次选择同一个文件
     });
 
-    /* ================= 全局键盘事件（统一，不再互相覆盖） ================= */
-    document.addEventListener('keydown', function (e) {
-        var menuOpen = myul.style.display === 'block';
-        var bgMenuOpen = bgChangeMenu.style.display === 'block';
-        var engineMenuOpen = engineMenu.style.display === 'block';
-        var searchFocused = sbtn === document.activeElement;
+    /* ================= 悬浮提示（跟随鼠标，显示名称与网址） ================= */
+    function showTooltip(x, y, text) {
+        tooltip.textContent = text;
+        tooltip.style.display = 'block';
+        const pad = 12;
+        let left = x + pad;
+        let top = y + pad;
+        const tw = tooltip.offsetWidth;
+        const th = tooltip.offsetHeight;
+        if (left + tw > window.innerWidth - 4) left = x - tw - pad;  // 右侧溢出 → 移到左侧
+        if (top + th > window.innerHeight - 4) top = y - th - pad;   // 底部溢出 → 移到上方
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+    }
 
-        // 编辑菜单打开时：↑↓ 切换输入框，Esc 关闭，Enter 保存
+    function hideTooltip() { tooltip.style.display = 'none'; }
+
+    ql.addEventListener('mousemove', (e) => {
+        const kt = e.target.closest('.keytype');
+        if (!kt) { hideTooltip(); return; }
+        const href = kt.getAttribute('href');
+        if (!href) { hideTooltip(); return; }
+        const name = localStorage.getItem(nameKey(getKeyIndex(kt)));
+        showTooltip(e.clientX, e.clientY, name ? name + '：' + href : href);
+    });
+    ql.addEventListener('mouseleave', hideTooltip);
+
+    /* ================= 全局键盘事件 ================= */
+    function focusNextInput(dir) {
+        const cur = EDIT_INPUTS.indexOf(document.activeElement);
+        const next = cur === -1 ? 0 : (cur + dir + EDIT_INPUTS.length) % EDIT_INPUTS.length;
+        EDIT_INPUTS[next].focus();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        const menuOpen = myul.style.display === 'block';
+        const bgMenuOpen = bgChangeMenu.style.display === 'block';
+        const engineMenuOpen = engineMenu.style.display === 'block';
+        const formOpen = !engineForm.hidden;
+        const searchFocused = sbtn === document.activeElement;
+
+        // 自定义引擎弹窗：Esc 关闭，Enter 保存
+        if (formOpen) {
+            if (e.key === 'Escape') closeEngineForm();
+            else if (e.key === 'Enter') saveCustomEngine();
+            return;
+        }
+        // 编辑菜单：↑↓ 切换输入框，Esc 关闭，Enter 保存
         if (menuOpen) {
-            if (e.keyCode === 40) { e.preventDefault(); iconInput.focus(); }
-            else if (e.keyCode === 38) { e.preventDefault(); linkInput.focus(); }
-            else if (e.keyCode === 27) { closeMenu(); }
-            else if (e.keyCode === 13) { e.preventDefault(); saveLink(); }
+            if (e.key === 'ArrowDown') { e.preventDefault(); focusNextInput(1); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); focusNextInput(-1); }
+            else if (e.key === 'Escape') closeMenu();
+            else if (e.key === 'Enter') { e.preventDefault(); saveLink(); }
             return;
         }
-        // 背景菜单打开时：Esc 关闭，忽略其他按键
+        // 背景菜单：Esc 关闭
         if (bgMenuOpen) {
-            if (e.keyCode === 27) bgChangeMenu.style.display = 'none';
+            if (e.key === 'Escape') bgChangeMenu.style.display = 'none';
             return;
         }
-        // 搜索引擎菜单打开时：Esc 关闭，忽略其他按键
+        // 搜索引擎菜单：Esc 关闭
         if (engineMenuOpen) {
-            if (e.keyCode === 27) engineMenu.style.display = 'none';
+            if (e.key === 'Escape') engineMenu.style.display = 'none';
             return;
         }
-        // Alt+字母：唤出对应格子的编辑菜单
-        if (e.altKey && !searchFocused) {
-            var ai = keyArray.indexOf(e.keyCode);
-            if (ai > -1) {
-                e.preventDefault();
-                currentKey = keytype[ai];
-                var r = keytype[ai].getBoundingClientRect();
-                openMenu(r.left + window.scrollX, r.bottom + window.scrollY + 4);
-                return;
-            }
+        // 快捷链接快捷键：搜索框未聚焦且无修饰键时，按字母键打开对应网站（空链接则弹出编辑菜单）
+        if (!searchFocused && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            const idx = KEY_CHARS.indexOf(e.key.toLowerCase());
+            if (idx > -1) { e.preventDefault(); keytype[idx].click(); return; }
         }
-        // 快捷链接快捷键：搜索框未聚焦时按字母键打开对应网站（空链接则弹出编辑菜单）
-        if (!searchFocused) {
-            var idx = keyArray.indexOf(e.keyCode);
-            if (idx > -1) { keytype[idx].click(); return; }
-        }
-        if (e.keyCode === 27) {
+        if (e.key === 'Escape') {
             if (searchFocused) { sbtn.blur(); hideSuggest(); }
             else { sbtn.focus(); }
-        } else if (e.keyCode === 13 && searchFocused) {
+        } else if (e.key === 'Enter' && searchFocused) {
             searchMy();
         }
     });
 
-    /* ================= 全局点击事件（统一） ================= */
-    document.addEventListener('click', function (e) {
-        // 快捷链接的点击由 ql 的委托处理（空链接会打开菜单，不在这里关闭）
+    /* ================= 全局点击事件 ================= */
+    document.addEventListener('click', (e) => {
+        // 快捷链接的点击由 ql 的委托处理（空链接会打开菜单）
         if (e.target.closest && e.target.closest('.keytype')) return;
         // 点击联想词列表内部不隐藏
         if (oUl.contains(e.target)) return;
@@ -436,32 +595,47 @@
             bgChangeMenu.style.display = 'none';
         }
         // 点击引擎按钮或菜单外部时关闭引擎菜单
-        if (!engineMenu.contains(e.target) && !itema.contains(e.target)) {
+        if (!engineMenu.contains(e.target) && !engineBtn.contains(e.target)) {
             engineMenu.style.display = 'none';
+        }
+        // 点击弹窗外部关闭
+        if (!engineForm.contains(e.target)) {
+            closeEngineForm();
         }
     });
 
-    /* ================= 右键修改背景 ================= */
-    var savedBg = localStorage.getItem(-1);
-    if (savedBg) bg.src = savedBg;
-
-    bg.addEventListener('contextmenu', function (e) {
-        e.preventDefault();
+    /* ================= 右键修改背景（空白处） ================= */
+    document.addEventListener('contextmenu', (e) => {
+        // 输入框保留原生右键菜单（复制 / 粘贴等）
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+        e.preventDefault(); // 屏蔽浏览器原生右键菜单
+        // 编辑菜单 / 背景菜单 / 引擎菜单 / 弹窗内部右键：忽略
+        if (e.target.closest && e.target.closest('#myul, #bgChangeMenu, #engineMenu, #engineForm')) return;
+        closeAllMenus(); // 打开背景菜单前关闭其他浮层
         bgChangeMenu.style.display = 'block';
         bgChangeMenu.style.left = e.pageX + 'px';
         bgChangeMenu.style.top = e.pageY + 'px';
     });
 
+    // 恢复自定义背景；无则保持白色底色
+    const savedBg = localStorage.getItem(-1);
+    if (savedBg) {
+        bg.src = savedBg;
+        bg.style.display = 'block';
+    }
+
+    bgSelectButton.addEventListener('click', () => bgSelect.click());
     bgSelect.addEventListener('change', function () {
-        var file = this.files[0];
+        const file = this.files[0];
         if (!file) return;
         if (!/image\/\w+/.test(file.type)) { alert('文件必须为图片！'); return; }
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            var dataUrl = e.target.result;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target.result;
             bg.src = dataUrl;
+            bg.style.display = 'block';
             // 压缩到最长边 1920px 后再存储，避免超出 localStorage 配额
-            dealImage(dataUrl, 1920, function (compressed) {
+            dealImage(dataUrl, 1920, (compressed) => {
                 localStorage.setItem(-1, compressed);
             });
         };
@@ -469,22 +643,22 @@
         this.value = '';
     });
 
-    bgClearBtn.addEventListener('click', function () {
-        bg.src = 'bg.jpg';
+    bgClearBtn.addEventListener('click', () => {
+        bg.removeAttribute('src');
+        bg.style.display = 'none';
         localStorage.removeItem(-1);
     });
 
     // 压缩图片（等比缩放，最长边不超过 maxSide）
     function dealImage(src, maxSide, callback) {
-        var img = new Image();
-        img.onload = function () {
-            var ratio = Math.max(img.width, img.height) > maxSide
-                ? maxSide / Math.max(img.width, img.height) : 1;
-            var canvas = document.createElement('canvas');
+        const img = new Image();
+        img.onload = () => {
+            const longer = Math.max(img.width, img.height);
+            const ratio = longer > maxSide ? maxSide / longer : 1;
+            const canvas = document.createElement('canvas');
             canvas.width = Math.round(img.width * ratio);
             canvas.height = Math.round(img.height * ratio);
-            var ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
             callback(canvas.toDataURL('image/jpeg', 0.9));
         };
         img.src = src;
@@ -494,37 +668,41 @@
     function applyHideLink() {
         ql.style.opacity = localStorage.getItem(-2) === '0' ? '0' : '1';
     }
-    hideLinkBtn.addEventListener('click', function () {
-        var next = ql.style.opacity === '0' ? '1' : '0';
+    hideLinkBtn.addEventListener('click', () => {
+        const next = ql.style.opacity === '0' ? '1' : '0';
         ql.style.opacity = next;
         localStorage.setItem(-2, next === '0' ? '0' : '1');
     });
-    applyHideLink();
 
     function applyTimeColor() {
-        timeBox.style.color = localStorage.getItem(-3) === '0' ? 'black' : 'white';
+        // 默认黑色（适配默认白底）；-3 === '1' 时为白色（适配深色背景）
+        timeBox.style.color = localStorage.getItem(-3) === '1' ? 'white' : 'black';
     }
-    timeColorBtn.addEventListener('click', function () {
-        var c = localStorage.getItem(-3);
-        localStorage.setItem(-3, c === '0' ? '1' : '0');
+    timeColorBtn.addEventListener('click', () => {
+        localStorage.setItem(-3, localStorage.getItem(-3) === '1' ? '0' : '1');
         applyTimeColor();
     });
-    applyTimeColor();
 
     function applyLinkColor() {
-        var color = localStorage.getItem(-4) === '0' ? 'white' : 'black';
-        Array.prototype.forEach.call(ql.getElementsByTagName('p'), function (p) {
+        const color = localStorage.getItem(-4) === '0' ? 'white' : 'black';
+        Array.prototype.forEach.call(ql.getElementsByTagName('p'), (p) => {
             p.style.color = color;
         });
     }
-    linkColorBtn.addEventListener('click', function () {
-        var c = localStorage.getItem(-4);
-        localStorage.setItem(-4, c === '0' ? '1' : '0');
+    linkColorBtn.addEventListener('click', () => {
+        localStorage.setItem(-4, localStorage.getItem(-4) === '0' ? '1' : '0');
         applyLinkColor();
     });
-    applyLinkColor();
+
+    /* ================= 使用方法 ================= */
+    bgHelpToggle.addEventListener('click', () => {
+        bgHelpBox.hidden = !bgHelpBox.hidden;
+    });
 
     /* ================= 初始化 ================= */
+    applyHideLink();
+    applyTimeColor();
+    applyLinkColor();
     applyEngine(); // 恢复上次选择的搜索引擎
-    sbtn.focus(); // 进入页面自动聚焦搜索框
+    sbtn.focus();  // 进入页面自动聚焦搜索框
 })();
