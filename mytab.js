@@ -1,422 +1,357 @@
-var searchBtn = document.querySelector('.search-btn');//搜索框
-var style1 = document.createElement('style');
-var timeBox = document.querySelector('.timeBox');//时间
-var container = document.getElementById("container");//包含搜索框和搜索图标
-var sbtn = document.getElementById("search-btn");
-var itema = document.getElementById("itema");//搜索框前后的图标
-var itemb = document.getElementById("itemb");
-var bg = document.getElementById("bg");//背景
-var content = sbtn.value;
-sbtn.focus(); //不用autofocus，不好用
+/**
+ * MyTab v2.0 优化版
+ *
+ * 主要改动：
+ * 1. 统一使用 addEventListener 绑定事件，修复 window.onkeydown / window.onclick
+ *    被反复覆盖导致的相互冲突
+ * 2. 修复百度联想词链接：正确域名 + URL 编码（支持空格）+ textContent 防注入 + 防抖
+ * 3. 修复清除判断：输入 "clear" 才清除（原代码只判断 "c"），并同步重置 DOM
+ * 4. 修复图标状态过期问题：添加/替换本地图标无需刷新页面
+ * 5. 修复点击搜索按钮依赖失焦时序的问题，搜索不再清空已输入内容
+ * 6. 空链接点击时弹出编辑菜单（对应 index.html 中注释的设计意图）
+ * 7. 输入网址自动补全协议（https://），避免拼到当前页面地址后面
+ * 8. localStorage 键位保持不变，已有自定义数据完全兼容
+ */
+(function () {
+    'use strict';
 
-//focus和非focus时添加和去除各种css属性
-function add() {
-    sbtn.classList.add('sbtn-focus');
-    itema.classList.add('item-act');
-    itemb.classList.add('item-act');
-    bg.classList.add('bg-act');
-    container.classList.add('container-focus');
-    var contlate = sbtn.value;
-    if (contlate == "") {
-        oUl.style.display = 'none';//切别的页面再回来防止搜索框空了联想词还在
+    /* ================= 元素引用 ================= */
+    var sbtn = document.getElementById('search-btn');
+    var timeBox = document.querySelector('.timeBox');
+    var container = document.getElementById('container');
+    var itema = document.getElementById('itema');
+    var itemb = document.getElementById('itemb');
+    var bg = document.getElementById('bg');
+    var ql = document.getElementById('quickLink');
+    var keytype = ql.getElementsByClassName('keytype'); // 与 keyArray 顺序一致
+    var myul = document.getElementById('myul');
+    var linkInput = document.getElementById('linkInput');
+    var iconInput = document.getElementById('iconInput');
+    var iconSelect = document.getElementById('iconSelect');
+    var oUl = document.getElementById('relevance');
+    var bgChangeMenu = document.getElementById('bgChangeMenu');
+    var bgSelect = document.getElementById('bgSelect');
+    var bgClearBtn = document.getElementById('bgClear');
+    var hideLinkBtn = document.getElementById('hideLink');
+    var timeColorBtn = document.getElementById('timeColor');
+    var linkColorBtn = document.getElementById('linkColor');
+
+    // 按键盘排布的按键代码：Q W E R T Y U I O P / A S D F G H J K L / Z X C V B N M
+    var keyArray = [81, 87, 69, 82, 84, 89, 85, 73, 79, 80, 65, 83, 68, 70, 71, 72, 74, 75, 76, 90, 88, 67, 86, 66, 78, 77];
+
+    var currentKey = null; // 当前正在编辑的快捷链接格子
+
+    /* ================= 时间 ================= */
+    function padZero(n) { return n > 9 ? n : '0' + n; }
+
+    setInterval(function () {
+        var d = new Date();
+        timeBox.innerText = padZero(d.getHours()) + ':' + padZero(d.getMinutes());
+    }, 1000);
+
+    /* ================= 搜索 ================= */
+    function searchMy() {
+        var keyword = sbtn.value.trim();
+        if (!keyword) { sbtn.focus(); return; } // 空内容不弹空白页
+        window.open('https://www.baidu.com/s?ie=utf-8&word=' + encodeURIComponent(keyword));
     }
-};
-var relevance = document.getElementById('relevance');
-function remove() {
-    sbtn.classList.remove('sbtn-focus')
-    itema.classList.remove('item-act');
-    itemb.classList.remove('item-act');
-    bg.classList.remove('bg-act');
-    container.classList.remove('container-focus');
-    content = sbtn.value; //点击搜索按钮会丢失聚焦，先保存值，在清除内容
-    window.onclick = function (event) {
-        if (event.target.id == relevance) {
+
+    // 聚焦 / 失焦时的样式切换（不再清除已输入内容，点击搜索按钮不再依赖失焦时序）
+    function add() {
+        sbtn.classList.add('sbtn-focus');
+        itema.classList.add('item-act');
+        itemb.classList.add('item-act');
+        bg.classList.add('bg-act');
+        container.classList.add('container-focus');
+        if (!sbtn.value) hideSuggest();
+    }
+
+    function remove() {
+        sbtn.classList.remove('sbtn-focus');
+        itema.classList.remove('item-act');
+        itemb.classList.remove('item-act');
+        bg.classList.remove('bg-act');
+        container.classList.remove('container-focus');
+        hideSuggest();
+    }
+
+    sbtn.addEventListener('focus', add);
+    sbtn.addEventListener('blur', remove);
+    itemb.addEventListener('click', searchMy);
+
+    /* ================= 百度联想词（JSONP） ================= */
+    var suggestTimer = null;
+    var suggestScript = null;
+
+    sbtn.addEventListener('input', function () {
+        clearTimeout(suggestTimer);
+        var value = sbtn.value.trim();
+        if (!value) { hideSuggest(); return; }
+        suggestTimer = setTimeout(function () { fetchSuggest(value); }, 150); // 防抖
+    });
+
+    function fetchSuggest(value) {
+        if (suggestScript) suggestScript.remove(); // 清理上一个 script，避免堆积
+        suggestScript = document.createElement('script');
+        suggestScript.src = 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=' +
+            encodeURIComponent(value) + '&cb=doJosn';
+        document.body.appendChild(suggestScript);
+    }
+
+    // JSONP 回调（必须是全局函数，供百度返回的脚本调用）
+    window.doJosn = function (data) {
+        var list = data.s || [];
+        oUl.innerHTML = '';
+        if (list.length) {
+            list.forEach(function (ele) {
+                var li = document.createElement('li');
+                var a = document.createElement('a');
+                a.href = 'https://www.baidu.com/s?ie=utf-8&word=' + encodeURIComponent(ele);
+                a.target = '_blank';
+                a.textContent = ele; // textContent 防止注入，且空格可正常编码
+                li.appendChild(a);
+                oUl.appendChild(li);
+            });
             oUl.style.display = 'block';
         } else {
-            oUl.style.display = 'none';//隐藏联想词
+            hideSuggest();
         }
-    }
-    sbtn.value = ""; //失去焦点清除内容
-    //oUl.style.display = 'none';//隐藏联想词
-};
+    };
 
-//获得时间
-setInterval(function () {
-    var date = new Date()
-    let hh = padZero(date.getHours())
-    let mm = padZero(date.getMinutes())
-    //let ss = padZero(date.getSeconds())
-    timeBox.innerText = hh + ':' + mm; /* + ':' + ss */
-}, 1000);
+    // 点击联想词时阻止输入框失焦（否则列表被隐藏后点击事件丢失）
+    oUl.addEventListener('mousedown', function (e) { e.preventDefault(); });
 
-function padZero(n) {
-    return n > 9 ? n : '0' + n
-};
+    function hideSuggest() { oUl.style.display = 'none'; }
 
-//搜索事件
-function searchMy() {
-    /* sbtn.focus(); */
-    var url = "https://www.baidu.com/s?ie=utf-8&word=" + content;
-    window.open(url);
-}
-
-function myClick() {
-    /* sbtn.focus(); */
-    searchMy();
-}
-//获取联想词
-//输入框
-var oInp = document.getElementsByTagName('input')[0];
-//得到的数据存在ul的li里
-var oUl = document.getElementsByTagName('ul')[0];
-//获取输入内容，查找百度对应的src
-oInp.oninput = function () {
-    var value = this.value;
-    var oScript = document.createElement('script');
-    oScript.src = 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=' + value + '&cb=doJosn';
-    document.body.appendChild(oScript);
-    //输入框退格至清空的时候，隐藏联想词
-    if (value == "") {
-        oUl.style.display = 'none';
-    }
-}
-//对传回的数据进行处理（回调函数）
-function doJosn(data) {
-    var s = data.s;
-    var str = '';
-    if (s.length > 0) {
-        s.forEach(function (ele, index) {
-            str += '<li><a href =https://sp0.baidu.com/s?wd=' + ele + '>' + '<p>' + ele + '</p>' + '</a></li>';
-        })
-        oUl.innerHTML = str;
-        oUl.style.display = 'block';
-        var oA = document.getElementsByTagName('a');
-        for (let i = 0; i < oA.length; i++) {
-            oA[i].target = '_blank';//让联想词的链接在新标签页打开
-        }
-    } else {
-        oUl.style.display = 'none';
-    }
-}
-
-var keyArray = [81, 87, 69, 82, 84, 89, 85, 73, 79, 80, 65, 83, 68, 70, 71, 72, 74, 75, 76, 90, 88, 67, 86, 66, 78, 77];//按键盘排布的按键代码
-//在右键keytype后会停留在fn里，所以需要在那里也加入以下的按键事件，并添加一定的条件
-window.onkeydown = function (e) {
-    for (let i = 0; i < keytype.length; i++) {
-        if (sbtn != document.activeElement) {
-            if (e.keyCode === keyArray[i]) {//按下对应按键并且搜索框没有焦点
-                keytype[i].click();//点击对应i的链接
-            }
-        }
-    }
-    if (sbtn == document.activeElement) {//搜索框有焦点
-        if (e.keyCode == 27) {
-            sbtn.blur();//去焦点
-            oUl.style.display = 'none';//esc时隐藏
-        }
-        if (e.keyCode == 13) {//enter进行搜索
-            //enter不会让input丢失聚焦，所以要先取值，因为不能执行到remove里的取值
-            content = sbtn.value;
-            searchMy();
-            oUl.style.display = 'none';
-        };
-    } else {
-        if (e.keyCode == 27) {
-            sbtn.focus();//没有焦点时获得焦点
-        }
+    /* ================= 快捷链接：恢复 localStorage 数据 ================= */
+    for (var i = 0; i < keytype.length; i++) {
+        var kt = keytype[i];
+        var savedHref = localStorage.getItem(i);
+        var savedIcon = localStorage.getItem(i + 27);
+        var savedLocal = localStorage.getItem(i + 54);
+        if (savedHref) kt.href = savedHref;
+        if (savedLocal) setIcon(kt, savedLocal);            // 本地图片优先
+        else if (savedIcon) setIcon(kt, savedIcon);
     }
 
-}
-//quicklink部分，右键菜单和自定义网址
-var ql = document.getElementById("quickLink");//快捷链接的整体
-var keytype = document.getElementsByClassName("keytype");//每个链接按钮的样式
-let myul = document.querySelector('.myul');//右键菜单
-var ulId = document.getElementById("myul");
-var myli = document.getElementById("myli");//右键菜单列表项
-var linkInput = document.getElementById("linkInput");//右键菜单的链接输入框
-var iconInput = document.getElementById("iconInput");//右键图标链接输入框
-var iconSelect = document.getElementById("iconSelect");
-for (let i = 0; i < keytype.length; i++) {
-    const kt = keytype[i];//对应某个链接
-    var imgs = kt.getElementsByTagName('img').length;//用于判断是否存在img
-    //读取localstorage的缓存
-    var kthref = localStorage.getItem(i);
-    var ktimg = localStorage.getItem(i + 27);
-    var ktis = localStorage.getItem(i + 54);
-    if (kthref) {//如果保存了就读取，没有就默认
-        kt.href = kthref;
+    function setIcon(kt, src) {
+        var img = kt.querySelector('img');
+        if (!img) { img = document.createElement('img'); kt.appendChild(img); }
+        img.src = src;
     }
-    if (ktis) {
-        var linkImg = document.createElement("img");
-        kt.appendChild(linkImg);
-        linkImg.src = ktis;
-    } else if (ktimg) {
-        var linkImg = document.createElement("img");
-        kt.appendChild(linkImg);
-        linkImg.src = ktimg;
-    }
-    kt.addEventListener('contextmenu', fn);
-    function fn(e) {
-        e.preventDefault();//preventDefault()阻止默认事件（这里阻止了默认菜单）
-        myul.style.display = 'block';//点击右键菜单显示出来
-        let X = e.pageX;
-        let Y = e.pageY;
-        myul.style.left = X + 'px';
-        myul.style.top = Y + 'px';
+
+    function getKeyIndex(kt) { return Array.prototype.indexOf.call(keytype, kt); }
+
+    /* ================= 右键编辑菜单 ================= */
+    function openMenu(x, y) {
+        myul.style.display = 'block';
+        myul.style.left = x + 'px';
+        myul.style.top = y + 'px';
         linkInput.focus();
-        //kt.classList.add("test");
-        //enter后把输入的网址填入a标签的href中，让它能被访问，获取图标
-        //这里右键之后，只能监听到以下的onkeydown，需要把前面对搜索框的操作也添加到这里
-        window.onkeydown = function (e) {
-            if (myul.style.display == 'block') {
-                //var e = window.event || event;
-                if (e.keyCode == 40) {//左37，上38，右39，下40
-                    linkInput.blur();
-                    iconInput.focus();
-                }
-                if (e.keyCode == 38) {
-                    iconInput.blur();
-                    linkInput.focus();
-                }
-                if (e.keyCode == 27) {//esc
-                    myul.style.display = 'none';
-                }
-                if (e.keyCode == 13) {//enter
-                    var newLink = linkInput.value;//获得输入的网址
-                    var newIcon = iconInput.value;//可以使用本地图片
-                    kt.href = newLink;
-                    //输入时要加https://或http://
-                    //为什么要加"https://"，
-                    //因为不定义href时会自带网页本身的链接，不加就会把输入内容直接填到本身的网址后面，加上后可以替换掉原本的href
-                    if (imgs == 0) {
-                        //没有img时创建一个，放入网址图标
-                        // var linkImg = document.createElement("img");
-                        if (newIcon != '') {
-                            var linkImg = document.createElement("img");
-                            kt.appendChild(linkImg);
-                            linkImg.src = newIcon;
-                        }
-                    } else {
-                        //有img时替换src
-                        kt.querySelector("img").src = newIcon;//querySelector可以获得img
-                    }
-                    myul.style.display = 'none';//输入完消失
-                    linkInput.value = "";//输入框清空
-                    iconInput.value = "";
-                    //把数据存到localStorage
-                    if (newLink || newIcon) {
-                        localStorage.setItem(i, newLink);
-                        localStorage.setItem(i + 27, newIcon);
-                    }
-                    if (newLink == "c") {//在网址栏输入clear可以清除掉这里存储的网址
-                        localStorage.removeItem(i);
-                        localStorage.removeItem(i + 27);
-                        localStorage.removeItem(i + 54);
-                    }
-                }
-            }
-            if (myul.style.display == 'none') {
-                for (let i = 0; i < keytype.length; i++) {
-                    if (sbtn != document.activeElement) {
-                        if (e.keyCode === keyArray[i]) {//按下对应按键并且搜索框没有焦点
-                            keytype[i].click();//点击对应i的链接
-                        }
-                    }
-                }
-                if (sbtn == document.activeElement) {//搜索框有焦点
-                    if (e.keyCode == 27) {
-                        sbtn.blur();//去焦点
-                    }
-                    if (e.keyCode == 13) {//enter进行搜索
-                        //enter不会让input丢失聚焦，所以要先取值，因为不能执行到remove里的取值
-                        content = sbtn.value;
-                        searchMy();
-                    };
-                } else {
-                    if (e.keyCode == 27) {
-                        sbtn.focus();//没有焦点时获得焦点
-                    }
-                }
-            }
-        }
-        //加入联想词后，用此方法
-        window.onclick = function (event) {
-            if (linkInput != document.activeElement && iconInput != document.activeElement) {
-                myul.style.display = 'none';
-                linkInput.value = "";
-                iconInput.value = "";
-            }
-            //如果点击菜单外的任意位置，菜单被隐藏
-        }
-
-        iconSelect.addEventListener('change', readFile, false); //如果支持就监听改变事件，一旦改变了就运行readFile函数。
-        function readFile() {
-            if (imgs == 0) {
-                var file = this.files[0]; //获取file对象
-                //判断file的类型是不是图片类型。
-                if (!/image\/\w+/.test(file.type)) {
-                    alert("文件必须为图片！");
-                    return false;
-                }
-                var reader = new FileReader(); //声明一个FileReader实例
-                reader.readAsDataURL(file); //调用readAsDataURL方法来读取选中的图像文件
-                //最后在onload事件中，获取到成功读取的文件内容，并以插入一个img节点的方式显示选中的图片
-                reader.onload = function (e) {
-                    var linkImg = document.createElement("img");
-                    kt.appendChild(linkImg);
-                    linkImg.setAttribute('src', this.result);
-                    localStorage.setItem(i + 54, this.result);
-
-                }
-            }
-        }
     }
-}
-//右键修改背景
-var bgChangeMenu = document.getElementById("bgChangeMenu");
-var bgSelect = document.getElementById("bgSelect");
-var base64;//图片处理前的base64
-var dealimg;//处理后
-var bghref = localStorage.getItem(-1);
-if (bghref) {
-    bg.setAttribute('src', bghref);
-}
-bg.addEventListener('contextmenu', bgChange);
-// 修改背景图
-function bgChange(e) {
-    e.preventDefault();
-    // 右键菜单的显隐
-    bgChangeMenu.style.display = 'block';
-    let X = e.pageX;
-    let Y = e.pageY;
-    bgChangeMenu.style.left = X + 'px';
-    bgChangeMenu.style.top = Y + 'px';
 
-    window.onclick = function (e) {
-        if (bgSelect != document.activeElement) {
+    function closeMenu() {
+        myul.style.display = 'none';
+        linkInput.value = '';
+        iconInput.value = '';
+    }
+
+    // 右键快捷链接：弹出编辑菜单（事件委托，一次绑定）
+    ql.addEventListener('contextmenu', function (e) {
+        var kt = e.target.closest('.keytype');
+        if (!kt) return;
+        e.preventDefault();
+        currentKey = kt;
+        openMenu(e.pageX, e.pageY);
+    });
+
+    // 左键空链接：打开编辑菜单，而不是跳转到当前页面
+    ql.addEventListener('click', function (e) {
+        var kt = e.target.closest('.keytype');
+        if (!kt || kt.getAttribute('href')) return;
+        e.preventDefault();
+        currentKey = kt;
+        var rect = kt.getBoundingClientRect();
+        openMenu(rect.left + window.scrollX, rect.bottom + window.scrollY + 4);
+    });
+
+    // 保存链接（Enter 触发）
+    function saveLink() {
+        if (!currentKey) return;
+        var i = getKeyIndex(currentKey);
+        var newLink = linkInput.value.trim();
+        var newIcon = iconInput.value.trim();
+
+        // 输入 clear 清除该格子的记录（并重置 DOM，不再残留 href="clear"）
+        if (newLink.toLowerCase() === 'clear') {
+            currentKey.href = '';
+            var img = currentKey.querySelector('img');
+            if (img) img.remove();
+            localStorage.removeItem(i);
+            localStorage.removeItem(i + 27);
+            localStorage.removeItem(i + 54);
+            closeMenu();
+            return;
+        }
+
+        // 自动补全协议，避免把输入内容拼到当前页面地址后面
+        if (newLink && !/^https?:\/\//i.test(newLink)) newLink = 'https://' + newLink;
+
+        currentKey.href = newLink;
+        if (newLink) localStorage.setItem(i, newLink);
+        if (newIcon) {
+            setIcon(currentKey, newIcon);
+            localStorage.setItem(i + 27, newIcon);
+        }
+        closeMenu();
+    }
+
+    // 选择本地图片作为图标（FileReader 转 DataURL 存入 localStorage，可随时替换）
+    iconSelect.addEventListener('change', function () {
+        var kt = currentKey;
+        var file = this.files[0];
+        if (!kt || !file) return;
+        if (!/image\/\w+/.test(file.type)) { alert('文件必须为图片！'); return; }
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            setIcon(kt, e.target.result);
+            localStorage.setItem(getKeyIndex(kt) + 54, e.target.result);
+        };
+        reader.readAsDataURL(file);
+        this.value = ''; // 允许再次选择同一个文件
+    });
+
+    /* ================= 全局键盘事件（统一，不再互相覆盖） ================= */
+    document.addEventListener('keydown', function (e) {
+        var menuOpen = myul.style.display === 'block';
+        var bgMenuOpen = bgChangeMenu.style.display === 'block';
+        var searchFocused = sbtn === document.activeElement;
+
+        // 编辑菜单打开时：↑↓ 切换输入框，Esc 关闭，Enter 保存
+        if (menuOpen) {
+            if (e.keyCode === 40) { e.preventDefault(); iconInput.focus(); }
+            else if (e.keyCode === 38) { e.preventDefault(); linkInput.focus(); }
+            else if (e.keyCode === 27) { closeMenu(); }
+            else if (e.keyCode === 13) { e.preventDefault(); saveLink(); }
+            return;
+        }
+        // 背景菜单打开时：Esc 关闭，忽略其他按键
+        if (bgMenuOpen) {
+            if (e.keyCode === 27) bgChangeMenu.style.display = 'none';
+            return;
+        }
+        // 快捷链接快捷键：搜索框未聚焦时按字母键打开对应网站（空链接则弹出编辑菜单）
+        if (!searchFocused) {
+            var idx = keyArray.indexOf(e.keyCode);
+            if (idx > -1) { keytype[idx].click(); return; }
+        }
+        if (e.keyCode === 27) {
+            if (searchFocused) { sbtn.blur(); hideSuggest(); }
+            else { sbtn.focus(); }
+        } else if (e.keyCode === 13 && searchFocused) {
+            searchMy();
+        }
+    });
+
+    /* ================= 全局点击事件（统一） ================= */
+    document.addEventListener('click', function (e) {
+        // 快捷链接的点击由 ql 的委托处理（空链接会打开菜单，不在这里关闭）
+        if (e.target.closest && e.target.closest('.keytype')) return;
+        // 点击联想词列表内部不隐藏
+        if (oUl.contains(e.target)) return;
+        hideSuggest();
+        // 点击编辑菜单内部不关闭
+        if (myul.contains(e.target)) return;
+        closeMenu();
+        // 点击背景菜单外部关闭
+        if (!bgChangeMenu.contains(e.target)) {
             bgChangeMenu.style.display = 'none';
         }
-    }
-    // 选择背景
-    bgSelect.addEventListener('change', readFile, false); //运行readFile函数。
-    function readFile() {
-        var file = this.files[0]; //获取file对象
-        //判断file的类型是不是图片类型。
-        if (!/image\/\w+/.test(file.type)) {
-            alert("文件必须为图片！");
-            return false;
-        }
-        var reader = new FileReader(); //声明一个FileReader实例
-        reader.readAsDataURL(file); //调用readAsDataURL方法来读取选中的图像文件
-        //最后在onload事件中，获取到成功读取的文件内容，并以插入一个img节点的方式显示选中的图片
+    });
+
+    /* ================= 右键修改背景 ================= */
+    var savedBg = localStorage.getItem(-1);
+    if (savedBg) bg.src = savedBg;
+
+    bg.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        bgChangeMenu.style.display = 'block';
+        bgChangeMenu.style.left = e.pageX + 'px';
+        bgChangeMenu.style.top = e.pageY + 'px';
+    });
+
+    bgSelect.addEventListener('change', function () {
+        var file = this.files[0];
+        if (!file) return;
+        if (!/image\/\w+/.test(file.type)) { alert('文件必须为图片！'); return; }
+        var reader = new FileReader();
         reader.onload = function (e) {
-            bg.setAttribute('src', this.result);
-            base64 = this.result;
-            // console.log(base64.length);
-            dealImage(base64, 1920, useimg);//压缩图片在一定范围
-            function useimg(base64) {
-                dealimg = base64;
-                localStorage.setItem(-1, dealimg);
-                // console.log(dealimg.length);
-            }
-            // localStorage.removeItem(-1);
-            // localStorage.setItem(-1, this.result);
-        }
+            var dataUrl = e.target.result;
+            bg.src = dataUrl;
+            // 压缩到最长边 1920px 后再存储，避免超出 localStorage 配额
+            dealImage(dataUrl, 1920, function (compressed) {
+                localStorage.setItem(-1, compressed);
+            });
+        };
+        reader.readAsDataURL(file);
+        this.value = '';
+    });
+
+    bgClearBtn.addEventListener('click', function () {
+        bg.src = 'bg.jpg';
+        localStorage.removeItem(-1);
+    });
+
+    // 压缩图片（等比缩放，最长边不超过 maxSide）
+    function dealImage(src, maxSide, callback) {
+        var img = new Image();
+        img.onload = function () {
+            var ratio = Math.max(img.width, img.height) > maxSide
+                ? maxSide / Math.max(img.width, img.height) : 1;
+            var canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * ratio);
+            canvas.height = Math.round(img.height * ratio);
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            callback(canvas.toDataURL('image/jpeg', 0.9));
+        };
+        img.src = src;
     }
-}
-//清除背景图片
-function bgClear() {
-    bg.setAttribute('src', 'bg.jpg');
-    localStorage.removeItem(-1);
-}
-//压缩背景图片方法
-function dealImage(base64, w, callback) {
-    var newImage = new Image();
-    var quality = 0.9;    //压缩系数0-1之间
-    newImage.src = base64;
-    newImage.setAttribute("crossOrigin", 'Anonymous');	//url为外域时需要
-    var imgWidth, imgHeight;
-    newImage.onload = function () {
-        imgWidth = this.width;
-        imgHeight = this.height;
-        var canvas = document.createElement("canvas");
-        var ctx = canvas.getContext("2d");
-        if (Math.max(imgWidth, imgHeight) > w) {
-            if (imgWidth > imgHeight) {
-                canvas.width = w;
-                canvas.height = w * imgHeight / imgWidth;
-            } else {
-                canvas.height = w;
-                canvas.width = w * imgWidth / imgHeight;
-            }
-        } else {
-            canvas.width = imgWidth;
-            canvas.height = imgHeight;
-            quality = 0.9;
-        }
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(this, 0, 0, canvas.width, canvas.height);
-        var base64 = canvas.toDataURL("image/jpeg", quality); //压缩语句
-        callback(base64);//必须通过回调函数返回，否则无法及时拿到该值
+
+    /* ================= 显隐链接 / 颜色切换 ================= */
+    function applyHideLink() {
+        ql.style.opacity = localStorage.getItem(-2) === '0' ? '0' : '1';
     }
-}
-//隐藏快速链接
-var hideLinkCode = localStorage.getItem(-2);
-if (hideLinkCode == 1) {
-    ql.style.opacity = '1';
-} else if (hideLinkCode == 0) {
-    ql.style.opacity = '0';
-}
-function hideLink() {
-    hideLinkCode = localStorage.getItem(-2);
-    if (hideLinkCode == 1 || hideLinkCode == null) {
-        ql.style.opacity = '0';
-        localStorage.setItem(-2, 0);
-    } else if (hideLinkCode == 0) {
-        ql.style.opacity = '1';
-        localStorage.setItem(-2, 1);
+    hideLinkBtn.addEventListener('click', function () {
+        var next = ql.style.opacity === '0' ? '1' : '0';
+        ql.style.opacity = next;
+        localStorage.setItem(-2, next === '0' ? '0' : '1');
+    });
+    applyHideLink();
+
+    function applyTimeColor() {
+        timeBox.style.color = localStorage.getItem(-3) === '0' ? 'black' : 'white';
     }
-}
-// 修改时间字体颜色
-var timeColorCode = localStorage.getItem(-3);
-if (timeColorCode == 1) {
-    timeBox.style.color = "white";
-} else if (timeColorCode == 0) {
-    timeBox.style.color = "black";
-}
-function timeColorSet() {
-    timeColorCode = localStorage.getItem(-3);
-    if (timeColorCode == 1 || timeColorCode == null) {
-        timeBox.style.color = "black";
-        localStorage.setItem(-3, 0);
-    } else if (timeColorCode == 0) {
-        timeBox.style.color = "white";
-        localStorage.setItem(-3, 1);
+    timeColorBtn.addEventListener('click', function () {
+        var c = localStorage.getItem(-3);
+        localStorage.setItem(-3, c === '0' ? '1' : '0');
+        applyTimeColor();
+    });
+    applyTimeColor();
+
+    function applyLinkColor() {
+        var color = localStorage.getItem(-4) === '0' ? 'white' : 'black';
+        Array.prototype.forEach.call(ql.getElementsByTagName('p'), function (p) {
+            p.style.color = color;
+        });
     }
-}
-// 修改链接字体颜色
-var linkColorCode = localStorage.getItem(-4);
-var linkPLength = ql.getElementsByTagName('p').length;
-// 刷新时遍历修改颜色
-for (let i = 0; i < linkPLength; i++) {
-    var linkPColor = ql.getElementsByTagName('p')[i];
-    if (linkColorCode == 1) {
-        linkPColor.style.color = "black";
-    } else if (linkColorCode == 0) {
-        linkPColor.style.color = "white";
-    }
-    function linkColorSet() {
-        linkColorCode = localStorage.getItem(-4);
-        // 点击修改时遍历，全部修改颜色
-        for (let i = 0; i < linkPLength; i++) {
-            var linkPColor = ql.getElementsByTagName('p')[i];
-            if (linkColorCode == 1 || linkColorCode == null) {
-                linkPColor.style.color = "white";
-                localStorage.setItem(-4, 0);
-            } else if (linkColorCode == 0) {
-                linkPColor.style.color = "black";
-                localStorage.setItem(-4, 1);
-            }
-        }
-    }
-}
+    linkColorBtn.addEventListener('click', function () {
+        var c = localStorage.getItem(-4);
+        localStorage.setItem(-4, c === '0' ? '1' : '0');
+        applyLinkColor();
+    });
+    applyLinkColor();
+
+    /* ================= 初始化 ================= */
+    sbtn.focus(); // 进入页面自动聚焦搜索框
+})();

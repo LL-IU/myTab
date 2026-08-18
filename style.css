@@ -1,6 +1,7 @@
 @font-face {
     font-family: hanyifenggukaiti;
     src: url('font/hanyifenggukaiti.ttf');
+    font-display: swap;
 }
 
 * {
@@ -200,7 +201,7 @@ body {
 }
 
 .sbtn-focus {
-    width: 400px;
+    width: min(400px, 60vw);
     border: none;
     outline: none;
 }
@@ -218,7 +219,7 @@ body {
 
 /* 联想词 */
 #relebox {
-    width: 485px;
+    width: min(485px, 92vw);
     border-radius: 15px;
     transition: all 0.5s;
     z-index: 10;
@@ -226,7 +227,7 @@ body {
 }
 
 #relevance {
-    width: 485px;
+    width: min(485px, 92vw);
     position: absolute;
     top: 230px;
     padding: 0;
@@ -245,7 +246,7 @@ body {
     list-style: none;
     margin: 0px auto;
     height: 27px;
-    width: 485px;
+    width: 100%;
     padding-top: 3px;
     padding-bottom: 3px;
     transition: 0.5s;
@@ -264,7 +265,8 @@ body {
     color: black;
     line-height: 32px;
     height: 100%;
-    width: 485px;
+    width: 100%;
+    display: inline-block;
 }
 
 /* 快捷链接 */
@@ -409,4 +411,27 @@ body {
     border-bottom-left-radius: 0;
     border: 1px solid #c0bfbf;
     background: #212121;
+}
+
+/* 小屏适配 */
+@media (max-width: 900px) {
+    .timeBox {
+        font-size: 34px;
+        top: 80px;
+    }
+
+    .container {
+        top: 150px;
+    }
+
+    #relevance {
+        top: 190px;
+    }
+
+    #quickLink {
+        left: 50%;
+        translate: none;
+        transform: translateX(-50%) scale(0.72);
+        transform-origin: top center;
+    }
 }

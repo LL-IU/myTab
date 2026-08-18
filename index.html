@@ -18,9 +18,8 @@
     <!-- 搜索框 -->
     <div class="container" id="container">
         <i class="fa-brands fa-windows item" id="itema"><img src="baidu.png" alt=""></i>
-        <input type="text" id="search-btn" class="search-btn" placeholder="搜索" autocomplete="off" onfocus="add()"
-            onblur="remove()">
-        <button class="fa-solid fa-magnifying-glass item" id="itemb" onclick="myClick()"><img src="search.png" alt="">
+        <input type="text" id="search-btn" class="search-btn" placeholder="搜索" autocomplete="off">
+        <button class="fa-solid fa-magnifying-glass item" id="itemb"><img src="search.png" alt="">
         </button>
 
     </div>
@@ -30,8 +29,8 @@
     </div>
     <!-- 右键菜单 -->
     <ul class="myul" id="myul">
-        <li id="myli">网址<input type="text" id="linkInput" autocomplete="off"></li>
-        <li id="myli">图标<input type="text" id="iconInput" autocomplete="off">
+        <li class="myli">网址<input type="text" id="linkInput" autocomplete="off"></li>
+        <li class="myli">图标<input type="text" id="iconInput" autocomplete="off">
             <input type="file" id="iconSelect">
             <div id="iconButton"></div>
         </li>
@@ -42,10 +41,10 @@
         <div id="bgSelectButton" class="bgOption">
             <p>选择背景</p>
         </div>
-        <div id="bgClear" class="bgOption" onclick="bgClear()">清除背景</div>
-        <div id="hideLink" class="bgOption" onclick="hideLink()">显隐链接</div>
-        <div id="timeColor" class="colorSet" onclick="timeColorSet()">时间</div>
-        <div id="linkColor" class="colorSet" onclick="linkColorSet()">链接</div>
+        <div id="bgClear" class="bgOption">清除背景</div>
+        <div id="hideLink" class="bgOption">显隐链接</div>
+        <div id="timeColor" class="colorSet">时间</div>
+        <div id="linkColor" class="colorSet">链接</div>
     </div>
     <!-- 快捷链接 -->
     <div id="quickLink"><!-- 左键单击判断有没有url，没有创建，有跳转 ,先不要img，用js添加-->
