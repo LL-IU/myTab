@@ -183,6 +183,9 @@
         }
     });
 
+    // 点击引擎按钮时阻止搜索框失焦（避免搜索框缩小，保持聚焦放大状态）
+    engineBtn.addEventListener('mousedown', (e) => e.preventDefault());
+
     /* ================= 自定义搜索引擎弹窗 ================= */
     function openEngineForm() {
         closeAllMenus(); // 打开弹窗前关闭其他浮层
@@ -215,6 +218,7 @@
         searchGo.classList.add('item-act');
         bg.classList.add('bg-act');
         container.classList.add('container-focus');
+        oUl.style.width = container.offsetWidth + 'px'; // 联想词宽度匹配搜索框宽度
         if (!sbtn.value) hideSuggest();
     }
 
@@ -696,7 +700,14 @@
 
     /* ================= 使用方法 ================= */
     bgHelpToggle.addEventListener('click', () => {
-        bgHelpBox.hidden = !bgHelpBox.hidden;
+        const willShow = bgHelpBox.hidden;
+        bgHelpBox.hidden = !willShow;
+        if (willShow) {
+            // 面板在菜单右侧展开；右侧空间不足时向左展开
+            const r = bgChangeMenu.getBoundingClientRect();
+            const panelWidth = 300;
+            bgHelpBox.classList.toggle('bgHelp-left', r.right + 8 + panelWidth > window.innerWidth);
+        }
     });
 
     /* ================= 初始化 ================= */
