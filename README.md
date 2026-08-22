@@ -91,6 +91,20 @@
 2. 加载顺序固定：core → storage → time → search → links → bg → init（即 index.html 中脚本顺序）
 3. 冒烟测试 `tools/smoke-test.js` 同步改为按顺序加载 7 个模块，56 项断言全部通过
 
+#### v3.4（Edge / Chrome 新标签页扩展，2026.8）
+
+在 v3.3 基础上增加浏览器扩展支持（Manifest V3，Chromium 内核通用，Edge / Chrome 均可）：
+
+1. 新增 `manifest.json`：`chrome_url_overrides.newtab` 覆盖新标签页；`host_permissions` 授予百度联想词域名
+2. 新增 `icons/` 目录：由 favicon.ico 生成的 16 / 48 / 128 PNG 图标
+3. 联想词双路径：扩展环境（MV3 CSP 拦截远程脚本）改用 `fetch` + host_permissions 拉取并剥壳解析 JSONP 数据；网页版保持原 JSONP 方案，行为一致
+4. 网页版完全不受影响：同一套代码双端可用，`js/` 模块零结构性改动（仅 search.js 内部增加环境分支）
+
+侧载安装：
+1. Edge 打开 `edge://extensions` → 开启「开发人员模式」
+2. 「加载解压缩的扩展」→ 选择本目录（my-tab）
+3. 新开标签页即为 MyTab；如联想词异常，检查扩展详情中百度域名的权限
+
 #### 后续想法
 
 + ✅ 用快捷键alt+字母，唤出对应右键菜单（v3.0 已实现，v3.1 按想法移除，避免冲突）

@@ -171,16 +171,33 @@
         suggestTimer = setTimeout(() => fetchSuggest(value), 150);
     });
 
+    // 百度联想词请求地址（cb 为 JSONP 回调名参数）
+    const SUGGEST_URL = 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=';
+
     function fetchSuggest(value) {
-        if (suggestScript) { suggestScript.remove(); suggestScript = null; } // 取消上一次未完成的请求
-        suggestScript = document.createElement('script');
-        suggestScript.src = 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=' +
-            encodeURIComponent(value) + '&cb=mytabSuggest';
-        suggestScript.onerror = () => {
-            if (suggestScript) { suggestScript.remove(); suggestScript = null; }
-            hideSuggest();
-        };
-        document.body.appendChild(suggestScript);
+        const url = SUGGEST_URL + encodeURIComponent(value) + '&cb=mytabSuggest';
+        if (NS.isExtension()) {
+            // 扩展环境（MV3）：远程 <script> 被 CSP 拦截，改用 fetch；
+            // manifest 已授予 host_permissions 可绕过 CORS。剥掉 JSONP 回调壳再解析。
+            fetch(url)
+                .then((res) => res.text())
+                .then((text) => {
+                    const m = text.match(/^[^(]*\((.*)\)\s*;?\s*$/s);
+                    if (!m) { hideSuggest(); return; }
+                    window.mytabSuggest(JSON.parse(m[1]));
+                })
+                .catch(() => hideSuggest());
+        } else {
+            // 网页版：保留 JSONP 动态脚本方案
+            if (suggestScript) { suggestScript.remove(); suggestScript = null; } // 取消上一次未完成的请求
+            suggestScript = document.createElement('script');
+            suggestScript.src = url;
+            suggestScript.onerror = () => {
+                if (suggestScript) { suggestScript.remove(); suggestScript = null; }
+                hideSuggest();
+            };
+            document.body.appendChild(suggestScript);
+        }
     }
 
     // JSONP 回调（必须挂在全局，供百度返回的脚本调用）

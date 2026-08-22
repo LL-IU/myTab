@@ -54,10 +54,16 @@
 
     const padZero = (n) => (n > 9 ? n : '0' + n);
 
+    // 是否运行在浏览器扩展环境（chrome-extension:// 页面）。
+    // MV3 下远程 <script> 被 CSP 拦截，联想词等需要走 fetch + host_permissions；
+    // 普通网页返回 false，保留 JSONP 方案。
+    const isExtension = () => typeof chrome !== 'undefined' && !!chrome.runtime && !!chrome.runtime.id;
+
     /* ================= 导出 ================= */
     NS.ui = ui;
     NS.keytype = keytype;
     NS.KEY_CHARS = KEY_CHARS;
     NS.EDIT_INPUTS = EDIT_INPUTS;
     NS.padZero = padZero;
+    NS.isExtension = isExtension;
 })(window.MyTab = window.MyTab || {});
