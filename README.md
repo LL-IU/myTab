@@ -76,6 +76,21 @@
 4. 联想词方框样式修正：上下留白对称；宽度自动匹配搜索框宽度
 5. 移除默认背景图 bg.jpg（默认白色底色，无背景图）
 
+#### v3.3（模块化重构，2026.8）
+
+代码结构重构，行为与 v3.2 完全一致，零依赖、无需构建、双击 index.html 仍可直接使用：
+
+1. 单文件 mytab.js 拆分为 `js/` 目录下 7 个模块（经典脚本 + `window.MyTab` 命名空间协作；因浏览器拦截 file:// 下的 type="module"，故未用 ES Module，日后部署到 HTTP 服务器可无缝升级）：
+   + `js/mytab-core.js`：DOM 引用与共享常量 / 工具
+   + `js/mytab-storage.js`：localStorage 历史键位集中管理（旧数据完全兼容）
+   + `js/mytab-time.js`：时间渲染
+   + `js/mytab-search.js`：搜索 / 引擎切换与自定义 / 聚焦失焦样式 / 百度联想词
+   + `js/mytab-links.js`：快捷链接 / 图标三态 / 右键编辑菜单 / 悬浮提示
+   + `js/mytab-bg.js`：背景 / 显隐链接 / 颜色切换 / 使用方法面板
+   + `js/mytab-init.js`：全局键盘 / 点击 / 右键事件与浮层互斥 + 启动编排（最后加载）
+2. 加载顺序固定：core → storage → time → search → links → bg → init（即 index.html 中脚本顺序）
+3. 冒烟测试 `tools/smoke-test.js` 同步改为按顺序加载 7 个模块，56 项断言全部通过
+
 #### 后续想法
 
 + ✅ 用快捷键alt+字母，唤出对应右键菜单（v3.0 已实现，v3.1 按想法移除，避免冲突）
