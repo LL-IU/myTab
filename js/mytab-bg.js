@@ -10,12 +10,18 @@
     const storage = NS.storage;
 
     /* ================= 自定义背景 ================= */
-    // 恢复自定义背景；无则保持白色底色
-    const savedBg = storage.getBg();
-    if (savedBg) {
-        ui.bg.src = savedBg;
-        ui.bg.style.display = 'block';
+    // 恢复自定义背景；无则保持白色底色（可重复执行，导入数据后调用）
+    function restoreBg() {
+        const savedBg = storage.getBg();
+        if (savedBg) {
+            ui.bg.src = savedBg;
+            ui.bg.style.display = 'block';
+        } else {
+            ui.bg.removeAttribute('src');
+            ui.bg.style.display = 'none';
+        }
     }
+    restoreBg();
 
     ui.bgSelectButton.addEventListener('click', () => ui.bgSelect.click());
     ui.bgSelect.addEventListener('change', function () {
@@ -99,11 +105,21 @@
         }
     });
 
+    /* ================= 数据导入 / 导出（右键菜单项） ================= */
+    ui.bgExport.addEventListener('click', () => NS.data.exportData());
+    ui.bgImport.addEventListener('click', () => ui.bgImportFile.click());
+    ui.bgImportFile.addEventListener('change', function () {
+        const file = this.files[0];
+        this.value = ''; // 允许再次选择同一个文件
+        NS.data.importFromFile(file);
+    });
+
     /* ================= 导出 ================= */
     NS.bg = {
         closeMenu: () => { ui.bgChangeMenu.style.display = 'none'; },
         applyHideLink,
         applyTimeColor,
-        applyLinkColor
+        applyLinkColor,
+        reload: restoreBg
     };
 })(window.MyTab = window.MyTab || {});

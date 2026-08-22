@@ -59,7 +59,17 @@
             const idx = parseInt(get(-6), 10);
             return isNaN(idx) ? 0 : idx;
         },
-        setEngineIndex: (i) => set(-6, String(i))
+        setEngineIndex: (i) => set(-6, String(i)),
+
+        /* ---- 数据管理 ---- */
+        // 清空全部已知键位（导入前调用）
+        clearAll: () => {
+            for (let i = 0; i < 26; i++) {
+                del(hrefKey(i)); del(iconKey(i)); del(localIconKey(i));
+                del(localIconNameKey(i)); del(nameKey(i));
+            }
+            del(-1); del(-2); del(-3); del(-4); del(-5); del(-6);
+        }
     };
 
     /* ================= 导出 ================= */

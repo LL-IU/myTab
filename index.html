@@ -60,6 +60,9 @@
         <div id="hideLink" class="bgOption" role="button">显隐链接</div>
         <div id="timeColor" class="bgOption" role="button">时间颜色</div>
         <div id="linkColor" class="bgOption" role="button">链接颜色</div>
+        <div id="bgExport" class="bgOption" role="button">导出数据</div>
+        <div id="bgImport" class="bgOption" role="button">导入数据</div>
+        <input type="file" id="bgImportFile" accept=".json,application/json" aria-hidden="true" tabindex="-1">
         <div id="bgHelpToggle" class="bgOption" role="button">使用方法</div>
         <div id="bgHelpBox" hidden>
             <p><b>基本</b>：点击字母格子进入对应网站；点击空格子即可编辑。</p>
@@ -68,7 +71,7 @@
             <p><b>快捷键</b>：搜索框未聚焦时，按字母键直达对应网站；Esc 聚焦 / 取消聚焦搜索框。</p>
             <p><b>图标</b>：支持图片链接、文字、本地图片；无图标时自动获取网站图标，失败显示「无」。</p>
             <p><b>背景</b>：右键空白处选择本地图片作为背景；可清除、显隐链接、调整文字颜色。</p>
-            <p><b>数据</b>：全部保存在浏览器 localStorage，清除浏览器数据会丢失自定义内容。</p>
+            <p><b>数据</b>：全部保存在浏览器 localStorage；右键空白处「导出数据 / 导入数据」可备份或在浏览器 / 设备间迁移。</p>
         </div>
     </div>
 
@@ -178,6 +181,7 @@
     <!-- 模块化脚本（经典脚本，双击可直接打开；加载顺序即依赖顺序） -->
     <script src="js/mytab-core.js"></script>
     <script src="js/mytab-storage.js"></script>
+    <script src="js/mytab-data.js"></script>
     <script src="js/mytab-time.js"></script>
     <script src="js/mytab-search.js"></script>
     <script src="js/mytab-links.js"></script>

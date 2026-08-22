@@ -10,20 +10,26 @@
     const storage = NS.storage;
 
     /* ================= 恢复 localStorage 数据 ================= */
-    for (let i = 0; i < NS.keytype.length; i++) {
-        const kt = NS.keytype[i];
-        const savedHref = storage.getHref(i);
-        const savedIcon = storage.getIcon(i);
-        const savedLocal = storage.getLocalIcon(i);
-        if (savedHref) kt.href = savedHref;
-        if (savedLocal) setIcon(kt, savedLocal);            // 本地图片优先
-        else if (savedIcon) {                               // 图标可能是图片链接或文字
-            if (isImageUrl(savedIcon)) setIcon(kt, savedIcon);
-            else setTile(kt, savedIcon, tileColor(savedIcon));
-        } else {
-            ensureTile(kt);                                 // 有链接无图标 → 自动获取 / 文字图标
+    // 可重复执行：先清空格子（href + 图标），再从存储恢复（加载与导入数据后都会调用）
+    function restoreLinks() {
+        for (let i = 0; i < NS.keytype.length; i++) {
+            const kt = NS.keytype[i];
+            kt.removeAttribute('href');
+            removeIconEl(kt);
+            const savedHref = storage.getHref(i);
+            const savedIcon = storage.getIcon(i);
+            const savedLocal = storage.getLocalIcon(i);
+            if (savedHref) kt.href = savedHref;
+            if (savedLocal) setIcon(kt, savedLocal);            // 本地图片优先
+            else if (savedIcon) {                               // 图标可能是图片链接或文字
+                if (isImageUrl(savedIcon)) setIcon(kt, savedIcon);
+                else setTile(kt, savedIcon, tileColor(savedIcon));
+            } else {
+                ensureTile(kt);                                 // 有链接无图标 → 自动获取 / 文字图标
+            }
         }
     }
+    restoreLinks();
 
     function getKeyIndex(kt) { return Array.prototype.indexOf.call(NS.keytype, kt); }
 
@@ -252,6 +258,7 @@
     NS.links = {
         open: openMenu,
         close: closeMenu,
-        save: saveLink
+        save: saveLink,
+        reload: restoreLinks
     };
 })(window.MyTab = window.MyTab || {});

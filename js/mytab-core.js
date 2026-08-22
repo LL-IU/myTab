@@ -44,7 +44,10 @@
         engineUrlInput: $('engineUrlInput'),
         engineSave: $('engineSave'),
         engineCancel: $('engineCancel'),
-        tooltip: $('tooltip')
+        tooltip: $('tooltip'),
+        bgExport: $('bgExport'),
+        bgImport: $('bgImport'),
+        bgImportFile: $('bgImportFile')
     };
 
     // 键盘排布（小写字母，与 HTML 中 keytype 顺序一致）：q w e r t y u i o p / a s d f g h j k l / z x c v b n m
