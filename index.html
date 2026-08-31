@@ -63,6 +63,8 @@
         <div id="bgExport" class="bgOption" role="button">导出数据</div>
         <div id="bgImport" class="bgOption" role="button">导入数据</div>
         <input type="file" id="bgImportFile" accept=".json,application/json" aria-hidden="true" tabindex="-1">
+        <div id="bgWebdav" class="bgOption" role="button">WebDAV 设置</div>
+        <div id="bgSyncNow" class="bgOption" role="button">立即同步</div>
         <div id="bgHelpToggle" class="bgOption" role="button">使用方法</div>
         <div id="bgHelpBox" hidden>
             <p><b>基本</b>：点击字母格子进入对应网站；点击空格子即可编辑。</p>
@@ -72,6 +74,7 @@
             <p><b>图标</b>：支持图片链接、文字、本地图片；无图标时自动获取网站图标，失败显示「无」。</p>
             <p><b>背景</b>：右键空白处选择本地图片作为背景；可清除、显隐链接、调整文字颜色。</p>
             <p><b>数据</b>：全部保存在浏览器 localStorage；右键空白处「导出数据 / 导入数据」可备份或在浏览器 / 设备间迁移。</p>
+            <p><b>同步</b>：「WebDAV 设置」配置自己的 WebDAV 网盘并打开开关，「立即同步」手动上传全部链接与设置到云端；不会自动同步，可用「从云端恢复」取回。</p>
         </div>
     </div>
 
@@ -88,6 +91,29 @@
             <button type="button" id="engineSave">保存</button>
             <button type="button" id="engineCancel">取消</button>
         </div>
+    </div>
+
+    <!-- WebDAV 同步设置弹窗 -->
+    <div id="webdavForm" hidden>
+        <h3>WebDAV 同步设置</h3>
+        <label class="webdav-toggle"><input type="checkbox" id="webdavEnable">启用 WebDAV 同步</label>
+        <label>服务器地址（WebDAV 根目录）<input type="text" id="webdavUrlInput" autocomplete="off"
+                placeholder="https://dav.jianguoyun.com/dav/"></label>
+        <label>文件名（相对地址的完整路径）<input type="text" id="webdavFileInput" placeholder="/mytab/mytab.json"
+                title="相对服务器地址的完整路径；保存配置时会自动在云端创建文件夹"></label>
+        <label>账号<input type="text" id="webdavUserInput" autocomplete="off" placeholder="WebDAV 账号"></label>
+        <label>密码 / 应用密码<input type="password" id="webdavPassInput" autocomplete="new-password"
+                placeholder="WebDAV 密码或应用专用密码"></label>
+        <div id="webdavStatus" hidden></div>
+        <div class="webdavForm-actions">
+            <button type="button" id="webdavTestBtn">测试连接</button>
+            <button type="button" id="webdavRestoreBtn">从云端恢复</button>
+        </div>
+        <div class="webdavForm-actions">
+            <button type="button" id="webdavSave">保存</button>
+            <button type="button" id="webdavCancel">取消</button>
+        </div>
+        <p class="webdav-note">仅点击右键菜单「立即同步」时才上传，无自动同步。</p>
     </div>
 
     <!-- 悬浮提示 -->
@@ -186,6 +212,7 @@
     <script src="js/mytab-search.js"></script>
     <script src="js/mytab-links.js"></script>
     <script src="js/mytab-bg.js"></script>
+    <script src="js/mytab-webdav.js"></script>
     <script src="js/mytab-init.js"></script>
 </body>
 

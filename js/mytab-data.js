@@ -2,7 +2,7 @@
  * MyTab v3.4.1 —— 数据模块（导出 / 导入）
  * 导出全部自定义数据为 JSON 备份文件（26 个链接槽 + 设置项）；
  * 导入时先校验结构，再全量恢复并刷新界面。
- * 对外暴露：NS.data = { exportData, importFromFile }
+ * 对外暴露：NS.data = { buildExport, exportData, importFromFile, validate, applyImport }
  */
 (function (NS) {
     'use strict';
@@ -119,8 +119,12 @@
     }
 
     /* ================= 导出 ================= */
+    // buildExport / validate / applyImport 同时供 WebDAV 同步与云端恢复复用（v3.5）
     NS.data = {
+        buildExport,
         exportData,
-        importFromFile
+        importFromFile,
+        validate,
+        applyImport
     };
 })(window.MyTab = window.MyTab || {});

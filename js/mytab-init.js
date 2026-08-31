@@ -15,6 +15,7 @@
         NS.bg.closeMenu();             // 背景菜单
         NS.search.closeEngineMenu();   // 搜索引擎菜单
         NS.search.closeEngineForm();   // 自定义引擎弹窗
+        NS.webdav.closeForm();         // WebDAV 设置弹窗
     };
 
     /* ================= 全局键盘事件 ================= */
@@ -31,6 +32,12 @@
         const formOpen = !ui.engineForm.hidden;
         const searchFocused = ui.sbtn === document.activeElement;
 
+        // WebDAV 设置弹窗：Esc 关闭，Enter 保存
+        if (!ui.webdavForm.hidden) {
+            if (e.key === 'Escape') NS.webdav.closeForm();
+            else if (e.key === 'Enter') NS.webdav.saveForm();
+            return;
+        }
         // 自定义引擎弹窗：Esc 关闭，Enter 保存
         if (formOpen) {
             if (e.key === 'Escape') NS.search.closeEngineForm();
@@ -89,6 +96,10 @@
         // 点击弹窗外部关闭
         if (!ui.engineForm.contains(e.target)) {
             NS.search.closeEngineForm();
+        }
+        // 点击 WebDAV 设置弹窗外部关闭
+        if (!ui.webdavForm.contains(e.target)) {
+            NS.webdav.closeForm();
         }
     });
 

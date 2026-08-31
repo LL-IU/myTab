@@ -1,13 +1,16 @@
 {
   "manifest_version": 3,
   "name": "MyTab",
-  "version": "3.4.1",
+  "version": "3.5",
   "description": "自制的浏览器起始页：搜索、快捷链接、自定义背景。",
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
   "host_permissions": [
     "https://sp0.baidu.com/*"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
   ],
   "icons": {
     "16": "icons/icon16.png",

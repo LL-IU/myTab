@@ -4,6 +4,7 @@
  * 0-25 网址  27-52 图标  54-79 本地图片图标(DataURL)
  * 81-106 名称  108-133 本地图标文件名
  * -1 背景  -2 显隐链接  -3 时间颜色  -4 链接颜色  -5 自定义引擎  -6 当前引擎
+ * -7 WebDAV 配置  -8 上次同步时间（不属于备份数据，clearAll / 导入备份不清除）
  */
 (function (NS) {
     'use strict';
@@ -60,6 +61,12 @@
             return isNaN(idx) ? 0 : idx;
         },
         setEngineIndex: (i) => set(-6, String(i)),
+
+        /* ---- WebDAV 同步（v3.5；配置不属于备份数据，导入备份 / clearAll 均不清除） ---- */
+        getWebdav: () => get(-7),
+        setWebdav: (c) => set(-7, JSON.stringify(c)),
+        getLastSync: () => get(-8),
+        setLastSync: (v) => set(-8, String(v)),
 
         /* ---- 数据管理 ---- */
         // 清空全部已知键位（导入前调用）

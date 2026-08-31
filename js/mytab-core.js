@@ -4,7 +4,7 @@
  * 保持零依赖、无构建步骤，双击 index.html 可直接使用（经典脚本，非 ES Module，
  * 因浏览器会拦截 file:// 下的 type="module"）。
  *
- * 加载顺序：core → storage → time → search → links → bg → init
+ * 加载顺序：core → storage → data → time → search → links → bg → webdav → init
  */
 (function (NS) {
     'use strict';
@@ -47,7 +47,20 @@
         tooltip: $('tooltip'),
         bgExport: $('bgExport'),
         bgImport: $('bgImport'),
-        bgImportFile: $('bgImportFile')
+        bgImportFile: $('bgImportFile'),
+        bgWebdav: $('bgWebdav'),
+        bgSyncNow: $('bgSyncNow'),
+        webdavForm: $('webdavForm'),
+        webdavEnable: $('webdavEnable'),
+        webdavUrlInput: $('webdavUrlInput'),
+        webdavFileInput: $('webdavFileInput'),
+        webdavUserInput: $('webdavUserInput'),
+        webdavPassInput: $('webdavPassInput'),
+        webdavStatus: $('webdavStatus'),
+        webdavTestBtn: $('webdavTestBtn'),
+        webdavRestoreBtn: $('webdavRestoreBtn'),
+        webdavSave: $('webdavSave'),
+        webdavCancel: $('webdavCancel')
     };
 
     // 键盘排布（小写字母，与 HTML 中 keytype 顺序一致）：q w e r t y u i o p / a s d f g h j k l / z x c v b n m

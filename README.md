@@ -117,6 +117,18 @@
 4. 使用场景：备份自定义数据、在浏览器或设备间迁移（例如从网页版导入到扩展版）
 5. 冒烟测试新增导出 / 导入 10 项用例，共 68 项全部通过
 
+#### v3.5（WebDAV 手动同步，2026.8）
+
+右键空白处菜单新增「WebDAV 设置 / 立即同步」，可把全部自定义数据备份到自己的 WebDAV 网盘（坚果云、InfiniCloud 等均可）；**除手动点击「立即同步」外不做任何自动同步**：
+
+1. 「WebDAV 设置」弹窗：功能开关 + 服务器地址 / 文件名 / 账号 / 密码（Basic 认证，经 TextEncoder 支持中文等非 Latin1 字符）。地址配置为两段：**服务器地址只填 WebDAV 根目录**（如 `https://dav.jianguoyun.com/dav/`），**文件名填相对根目录的完整路径**（如 `/mytab/mytab.json`）；**首次保存配置时自动在云端创建对应文件夹**（已存在则服务器返回 405 跳过），失败会弹窗提示；「测试连接」结果直接显示在弹窗内（401 / 404 / 网络错误分别提示）；「从云端恢复」拉取云端备份，校验通过后全量应用并即时刷新界面（WebDAV 配置本身不会被清除）
+2. 「立即同步」：上传与「导出数据」同一格式的 JSON（26 个链接槽 + 全部设置项）到「根目录 + 文件名路径」拼接出的目标地址；服务器返回 409（父目录不存在）时自动 MKCOL 建目录并重试一次；未配置 / 未启用时自动打开设置弹窗引导；成功后记录上次同步时间
+3. 权限（扩展版）：manifest 新增 `optional_host_permissions`，保存配置时动态申请对应站点的主机权限（用户手势内调用），拒绝授权则提示；未授权时「立即同步」明确拦截。网页版直接 fetch，能否连接取决于目标服务器的 CORS 策略（自建服务器开启 CORS 即可，坚果云等按扩展方式使用）
+4. 配置存储：localStorage 键位 -7（WebDAV 配置）/ -8（上次同步时间）；配置不属于备份数据，「导入数据」/ clearAll 均不清除
+5. 新增 `js/mytab-webdav.js` 模块（加载顺序 bg → webdav → init）；`js/mytab-data.js` 补充导出 `buildExport / validate / applyImport` 供云端恢复复用
+6. 调试工具 `tools/test-webdav-server.js`：本地 WebDAV 模拟服务器（Basic 认证、409 建目录流程、CORS），配合任意静态 HTTP 服务可完整联调「配置 → 同步 → 恢复」全流程
+7. 冒烟测试新增 WebDAV 用例 21 项（弹窗交互、配置持久化、首次保存自动建文件夹、PUT 认证与目标地址、409 重试、401 提示、测试连接、云端恢复、扩展权限申请与拦截等），共 89 项全部通过
+
 侧载安装：
 1. Edge 打开 `edge://extensions` → 开启「开发人员模式」
 2. 「加载解压缩的扩展」→ 选择本目录（my-tab）
@@ -141,11 +153,3 @@
 + ✅ 点击搜索引擎图标进行更换搜索引擎时，使搜索框不进行因为失去焦点而进行的缩小变化（v3.2 已修复）
 + ✅ 输入搜索内容，出现联想词时，展示联想词的方框样式修改，底部距离文字距离和顶部距离文字距离不一致，方框宽度匹配搜索框宽度（v3.2 已修复）
 
-#### 特技
-
-1. 使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2. Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3. 你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4. [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5. Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6. Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
